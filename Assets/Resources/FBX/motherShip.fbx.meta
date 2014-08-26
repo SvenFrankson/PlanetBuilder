@@ -1,0 +1,142 @@
+fileFormatVersion: 2
+guid: a2135208a0c2b5047b306fd5cd412296
+ModelImporter:
+  serializedVersion: 16
+  fileIDToRecycleName:
+    100000: Camera
+    100002: Cube
+    100004: Cube_001
+    100006: Lamp
+    100008: //RootNode
+    100010: Glass
+    100012: Body
+    100014: Control
+    100016: Lights
+    100018: Room
+    100020: RoomDoor
+    100022: Stairs
+    100024: ForceField
+    100026: ForceField_001
+    100028: SideGlass
+    100030: Shower
+    400000: Camera
+    400002: Cube
+    400004: Cube_001
+    400006: Lamp
+    400008: //RootNode
+    400010: Glass
+    400012: Body
+    400014: Control
+    400016: Lights
+    400018: Room
+    400020: RoomDoor
+    400022: Stairs
+    400024: ForceField
+    400026: ForceField_001
+    400028: SideGlass
+    400030: Shower
+    2300000: Cube
+    2300002: Cube_001
+    2300004: Glass
+    2300006: Body
+    2300008: Control
+    2300010: Lights
+    2300012: Room
+    2300014: RoomDoor
+    2300016: Stairs
+    2300018: ForceField
+    2300020: ForceField_001
+    2300022: SideGlass
+    2300024: Shower
+    3300000: Cube
+    3300002: Cube_001
+    3300004: Glass
+    3300006: Body
+    3300008: Control
+    3300010: Lights
+    3300012: Room
+    3300014: RoomDoor
+    3300016: Stairs
+    3300018: ForceField
+    3300020: ForceField_001
+    3300022: SideGlass
+    3300024: Shower
+    4300000: Cube_001
+    4300002: Cube
+    4300004: Glass
+    4300006: Body
+    4300008: Control
+    4300010: Lights
+    4300012: Room
+    4300014: RoomDoor
+    4300016: Stairs
+    4300018: ForceField
+    4300020: ForceField_001
+    4300022: SideGlass
+    4300024: Shower
+    6400000: Body
+    6400002: Glass
+    6400004: Control
+    6400006: Lights
+    6400008: Room
+    6400010: RoomDoor
+    6400012: Stairs
+    6400014: ForceField
+    6400016: ForceField_001
+    6400018: SideGlass
+    6400020: Shower
+    7400000: Default Take
+    9500000: //RootNode
+  materials:
+    importMaterials: 0
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    optimizeGameObjects: 0
+    animationCompression: 1
+    animationRotationError: .5
+    animationPositionError: .5
+    animationScaleError: .5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 1
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+  tangentSpace:
+    normalSmoothAngle: 180
+    splitTangentsAcrossUV: 1
+    normalImportMode: 0
+    tangentImportMode: 1
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  additionalBone: 0
+  userData: 
