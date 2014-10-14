@@ -44,12 +44,12 @@ Material:
     m_Floats:
       data:
         first:
-          name: _Outline
-        second: .00200000009
-      data:
-        first:
           name: _Shininess
         second: .0300000031
+      data:
+        first:
+          name: _Outline
+        second: .00200000009
       data:
         first:
           name: _Parallax
@@ -65,9 +65,9 @@ Material:
         second: {r: 1, g: 1, b: 1, a: 1}
       data:
         first:
-          name: _OutlineColor
-        second: {r: 0, g: 0, b: 0, a: 1}
-      data:
-        first:
           name: _SpecColor
         second: {r: 1, g: 1, b: 1, a: 1}
+      data:
+        first:
+          name: _OutlineColor
+        second: {r: 0, g: 0, b: 0, a: 1}

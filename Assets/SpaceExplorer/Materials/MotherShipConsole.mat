@@ -31,7 +31,7 @@ Material:
       data:
         first:
           name: _Outline
-        second: .00999999978
+        second: .00200000009
     m_Colors:
       data:
         first:

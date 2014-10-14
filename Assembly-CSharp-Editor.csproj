@@ -5,7 +5,7 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{92C285C2-E9B9-57B4-AA5E-E9E8412D2EBE}</ProjectGuid>
+	<ProjectGuid>{7C51A5D2-2193-B3BD-3253-C602538DF0D5}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
@@ -46,6 +46,7 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\CityBuilder\Scripts\Editor\SplineInspector.cs" />
      <Compile Include="Assets\Scripts\CubeMapGenerator\Editor\CubeMapGenerator.cs" />
      <Compile Include="Assets\Scripts\CubeMapGenerator\Editor\CubeMapUtility.cs" />
      <Compile Include="Assets\Scripts\Planet\Editor\PlanetChunckInspector.cs" />
@@ -82,7 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp.csproj">
-      <Project>{E8E7EEAF-7804-8917-88A1-DB715BC1DD32}</Project>      <Name>Assembly-CSharp</Name>    </ProjectReference>
+      <Project>{43EA98B4-1D5D-5462-D1DC-534F86B54D2D}</Project>      <Name>Assembly-CSharp</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
