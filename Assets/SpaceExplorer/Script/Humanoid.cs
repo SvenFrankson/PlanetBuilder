@@ -52,9 +52,7 @@ namespace SvenFrankson.Game.SpaceExplorer {
 				else if (this.currentGrav.GType == Gravity.GravityType.Spherical) {
 					this.cRigidbody.AddForce (- (this.cTransform.position - this.cTransform.parent.position).normalized * this.currentGrav.gravity);
 					float a = Vector3.Angle (this.cTransform.up, (this.cTransform.position - this.cTransform.parent.position));
-					if (a > 1f) {
-						this.transform.RotateAround (this.cTransform.position, Vector3.Cross (this.cTransform.up, (this.cTransform.position - this.cTransform.parent.position)), a * Time.deltaTime);
-					}
+					this.transform.RotateAround (this.cTransform.position, Vector3.Cross (this.cTransform.up, (this.cTransform.position - this.cTransform.parent.position)), a);
 				}
 			}
 		}
