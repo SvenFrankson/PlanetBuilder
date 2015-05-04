@@ -41,7 +41,7 @@ namespace SvenFrankson.Game.SphereCraft {
 
 			planetChunckInstance.AddComponent<MeshFilter> ();
 			MeshRenderer planetChunckMeshRenderer = planetChunckInstance.AddComponent<MeshRenderer> ();
-			planetChunckMeshRenderer.castShadows = true;
+			planetChunckMeshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
 			planetChunckMeshRenderer.receiveShadows = true;
 
 			// Adding MeshCollider at runtime gives much better performances.
