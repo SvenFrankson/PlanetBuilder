@@ -177,7 +177,7 @@ namespace SvenFrankson.Tools {
 			cubeMap.SetPixels (forwardPixels, CubemapFace.PositiveZ);
 			cubeMap.SetPixels (backPixels, CubemapFace.NegativeZ);
 
-			AssetDatabase.CreateAsset (cubeMap, "Assets/Resources/CubeMapGenerator/Cubemaps/" + name + ".asset");
+			AssetDatabase.CreateAsset (cubeMap, "Assets/PlanetBuilder/Resources/CubeMapGenerator/Cubemaps/" + name + ".asset");
 		}
 	}
 }

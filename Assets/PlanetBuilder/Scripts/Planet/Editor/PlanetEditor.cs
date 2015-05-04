@@ -21,7 +21,7 @@ namespace SvenFrankson.Game.SphereCraft {
 		static private Texture2D PlanetEditorLogo {
 			get {
 				if (PlanetEditor.planetEditorLogo == null) {
-					PlanetEditor.planetEditorLogo = Resources.LoadAssetAtPath<Texture2D> ("Assets/Resources/icons/logoPlanetEditor.png");
+					PlanetEditor.planetEditorLogo = Resources.LoadAssetAtPath<Texture2D> ("Assets/PlanetBuilder/Resources/icons/logoPlanetEditor.png");
 					
 				}
 				return PlanetEditor.planetEditorLogo;
@@ -32,7 +32,7 @@ namespace SvenFrankson.Game.SphereCraft {
 		static private Texture2D PlanetEraseLogo {
 			get {
 				if (PlanetEditor.planetEraseLogo == null) {
-					PlanetEditor.planetEraseLogo = Resources.LoadAssetAtPath<Texture2D> ("Assets/Resources/icons/logoPlanetErase.png");
+					PlanetEditor.planetEraseLogo = Resources.LoadAssetAtPath<Texture2D> ("Assets/PlanetBuilder/Resources/icons/logoPlanetErase.png");
 					
 				}
 				return PlanetEditor.planetEraseLogo;
@@ -43,7 +43,7 @@ namespace SvenFrankson.Game.SphereCraft {
 		static private Texture2D PlanetDirtLogo {
 			get {
 				if (PlanetEditor.planetDirtLogo == null) {
-					PlanetEditor.planetDirtLogo = Resources.LoadAssetAtPath<Texture2D> ("Assets/Resources/icons/logoPlanetDirt.png");
+					PlanetEditor.planetDirtLogo = Resources.LoadAssetAtPath<Texture2D> ("Assets/PlanetBuilder/Resources/icons/logoPlanetDirt.png");
 					
 				}
 				return PlanetEditor.planetDirtLogo;
@@ -54,7 +54,7 @@ namespace SvenFrankson.Game.SphereCraft {
 		static private Texture2D PlanetRockLogo {
 			get {
 				if (PlanetEditor.planetRockLogo == null) {
-					PlanetEditor.planetRockLogo = Resources.LoadAssetAtPath<Texture2D> ("Assets/Resources/icons/logoPlanetRock.png");
+					PlanetEditor.planetRockLogo = Resources.LoadAssetAtPath<Texture2D> ("Assets/PlanetBuilder/Resources/icons/logoPlanetRock.png");
 					
 				}
 				return PlanetEditor.planetRockLogo;
@@ -65,7 +65,7 @@ namespace SvenFrankson.Game.SphereCraft {
 		static private Texture2D PlanetSandLogo {
 			get {
 				if (PlanetEditor.planetSandLogo == null) {
-					PlanetEditor.planetSandLogo = Resources.LoadAssetAtPath<Texture2D> ("Assets/Resources/icons/logoPlanetSand.png");
+					PlanetEditor.planetSandLogo = Resources.LoadAssetAtPath<Texture2D> ("Assets/PlanetBuilder/Resources/icons/logoPlanetSand.png");
 					
 				}
 				return PlanetEditor.planetSandLogo;
@@ -76,7 +76,7 @@ namespace SvenFrankson.Game.SphereCraft {
 		static private Texture2D PlanetDustLogo {
 			get {
 				if (PlanetEditor.planetDustLogo == null) {
-					PlanetEditor.planetDustLogo = Resources.LoadAssetAtPath<Texture2D> ("Assets/Resources/icons/logoPlanetDust.png");
+					PlanetEditor.planetDustLogo = Resources.LoadAssetAtPath<Texture2D> ("Assets/PlanetBuilder/Resources/icons/logoPlanetDust.png");
 					
 				}
 				return PlanetEditor.planetDustLogo;
@@ -87,7 +87,7 @@ namespace SvenFrankson.Game.SphereCraft {
 		static private Material EraseMaterial {
 			get {
 				if (PlanetEditor.eraseMaterial == null) {
-					PlanetEditor.eraseMaterial = Resources.LoadAssetAtPath<Material> ("Assets/Resources/Materials/PlanetErase.mat");
+					PlanetEditor.eraseMaterial = Resources.LoadAssetAtPath<Material> ("Assets/PlanetBuilder/Resources/Materials/PlanetErase.mat");
 					
 				}
 				return PlanetEditor.eraseMaterial;
@@ -98,7 +98,7 @@ namespace SvenFrankson.Game.SphereCraft {
 		static private Material VegetationMaterial {
 			get {
 				if (PlanetEditor.vegetationMaterial == null) {
-					PlanetEditor.vegetationMaterial = Resources.LoadAssetAtPath<Material> ("Assets/Resources/Materials/PlanetVegetation.mat");
+					PlanetEditor.vegetationMaterial = Resources.LoadAssetAtPath<Material> ("Assets/PlanetBuilder/Resources/Materials/PlanetVegetation.mat");
 					
 				}
 				return PlanetEditor.vegetationMaterial;

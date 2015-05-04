@@ -14,7 +14,7 @@ namespace SvenFrankson.Game.SphereCraft {
 		static private Texture2D Logo {
 			get {
 				if (logo == null) {
-					logo = Resources.LoadAssetAtPath<Texture2D> ("Assets/Resources/icons/logoPlanetBuilderSmall.png");
+					logo = Resources.LoadAssetAtPath<Texture2D> ("Assets/PlanetBuilder/Resources/icons/logoPlanetBuilderSmall.png");
 					
 				}
 				return logo;
@@ -25,7 +25,7 @@ namespace SvenFrankson.Game.SphereCraft {
 		static private Texture2D EnglishFlag {
 			get {
 				if (englishFlag == null) {
-					englishFlag = Resources.LoadAssetAtPath<Texture2D> ("Assets/Resources/icons/logoEnglish.png");
+					englishFlag = Resources.LoadAssetAtPath<Texture2D> ("Assets/PlanetBuilder/Resources/icons/logoEnglish.png");
 					
 				}
 				return englishFlag;
@@ -36,7 +36,7 @@ namespace SvenFrankson.Game.SphereCraft {
 		static private Texture2D FrenchFlag {
 			get {
 				if (frenchFlag == null) {
-					frenchFlag = Resources.LoadAssetAtPath<Texture2D> ("Assets/Resources/icons/logoFrench.png");
+					frenchFlag = Resources.LoadAssetAtPath<Texture2D> ("Assets/PlanetBuilder/Resources/icons/logoFrench.png");
 					
 				}
 				return frenchFlag;
