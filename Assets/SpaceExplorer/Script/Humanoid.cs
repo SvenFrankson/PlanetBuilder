@@ -31,7 +31,7 @@ namespace SvenFrankson.Game.SpaceExplorer {
 		private Rigidbody cRigidbody;
 
 		void Start () {
-			Screen.showCursor = false;
+			Cursor.visible = false;
 
 			this.cTransform = this.GetComponent<Transform> ();
 			if (ReverseYAxis) {
@@ -273,8 +273,8 @@ namespace SvenFrankson.Game.SpaceExplorer {
 			this.seat = seat;
 			this.lightShip = lightShip;
 			this.cTransform.parent = this.lightShip.transform;
-			this.rigidbody.isKinematic = true;
-			this.collider.enabled = false;
+			this.cRigidbody.isKinematic = true;
+			this.GetComponent<Collider>().enabled = false;
 			this.state = HumanoidState.PilotLightShip;
 		}
 		
@@ -290,14 +290,14 @@ namespace SvenFrankson.Game.SpaceExplorer {
 				this.lightShip.pitchOn = 0;
 				this.lightShip.rollOn = 0;
 				this.transform.parent = this.lightShip.transform.parent;
-				this.rigidbody.isKinematic = false;
-				this.collider.enabled = true;
+				this.cRigidbody.isKinematic = false;
+				this.GetComponent<Collider>().enabled = true;
 				this.state = HumanoidState.Stand;
 				this.currentGrav = this.transform.parent.GetComponent<Gravity> ();
 			}
 
-			this.rigidbody.isKinematic = false;
-			this.collider.enabled = true;
+			this.cRigidbody.isKinematic = false;
+			this.GetComponent<Collider>().enabled = true;
 
 			this.seat = null;
 			this.spaceShip = null;
