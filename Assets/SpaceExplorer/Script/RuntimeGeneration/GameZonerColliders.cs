@@ -8,7 +8,9 @@ namespace SvenFrankson.Game.SpaceExplorer {
 	[RequireComponent(typeof(SphereCollider))]
 	public class GameZonerColliders : MonoBehaviour {
 
+#pragma warning disable 0414
 		private SphereCollider cCollider;
+#pragma warning restore 0414
 
 		private List<PlanetChunck> pChuncks = new List<PlanetChunck> ();
 

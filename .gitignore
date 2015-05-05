@@ -1,1 +1,7 @@
 /Library/
+/Temp
+/obj
+/.vs
+*.sln
+Thumbs.db
+Thumbs.db.meta
