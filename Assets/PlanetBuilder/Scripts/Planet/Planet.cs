@@ -1,248 +1,383 @@
 ﻿using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using System.Collections;
 using System.Collections.Generic;
+using System;
+using System.IO;
 
 namespace SvenFrankson.Game.SphereCraft {
-	
-	public class Planet : MonoBehaviour {
-		
-		public int subDegree;
-		public Cubemap heightMap;
-		public int heightCoef;
-		public Cubemap holeMap;
-		public int holeThreshold;
-		//public Cubemap holeHeightMap;
+
+    public class Planet : MonoBehaviour
+    {
+        public enum Side
+        {
+            Up = 0,
+            Right = 1,
+            Forward = 2,
+            Down = 3,
+            Left = 4,
+            Back = 5
+        };
+
+        [HideInInspector]
+        public string planetName;
+		public int degree;
+        public int size;
 		public int waterLevel;
-		public int dirtThickness;
-		public int dirtMin;
-		public int dirtMax;
-		public VegetationData vegetationData;
-		
-		public PlanetSide up;
-		public PlanetSide down;
-		public PlanetSide right;
-		public PlanetSide left;
-		public PlanetSide forward;
-		public PlanetSide back;
-		public List<PlanetSide> planetSides;
-		
-		public Transform vegetationFolder;
-		
-		public Material[] planetMaterials = new Material[2];
+        public int rMin;
+		public Material[] planetMaterials;
+
+        public Dictionary<Side, PlanetSide> planetSides = new Dictionary<Side,PlanetSide>();
 
 		public void Start () {
-			if (this.vegetationData != null) {
-				this.vegetationData.ComputeVegetationRange ();
-			}
-		}
-		
-		public void BuildPlanet () {
-			#if UNITY_EDITOR
-			EditorUtility.DisplayProgressBar ("Planet Builder", "Building Planet Sides...", 0f);
-			#endif
-			up.BuildSide (this, Vector3.up, subDegree);
-			#if UNITY_EDITOR
-			EditorUtility.DisplayProgressBar ("Planet Builder", "Building Planet Sides...", 1f / 6f);
-			#endif
-			down.BuildSide (this, Vector3.down, subDegree);
-			#if UNITY_EDITOR
-			EditorUtility.DisplayProgressBar ("Planet Builder", "Building Planet Sides...", 2f / 6f);
-			#endif
-			right.BuildSide (this, Vector3.right, subDegree);
-			#if UNITY_EDITOR
-			EditorUtility.DisplayProgressBar ("Planet Builder", "Building Planet Sides...", 3f / 6f);
-			#endif
-			left.BuildSide (this, Vector3.left, subDegree);
-			#if UNITY_EDITOR
-			EditorUtility.DisplayProgressBar ("Planet Builder", "Building Planet Sides...", 4f / 6f);
-			#endif
-			forward.BuildSide (this, Vector3.forward, subDegree);
-			#if UNITY_EDITOR
-			EditorUtility.DisplayProgressBar ("Planet Builder", "Building Planet Sides...", 5f / 6f);
-			#endif
-			back.BuildSide (this, Vector3.back, subDegree);
-			#if UNITY_EDITOR
-			EditorUtility.ClearProgressBar ();
-			#endif
-		}
-		
-		public void SearchPlanetSide () {
-			if (this.up == null) {
-				this.up = this.transform.Find ("up").GetComponent<PlanetSide> ();
-			}
-			if (this.down == null) {
-				this.down = this.transform.Find ("down").GetComponent<PlanetSide> ();
-			}
-			if (this.right == null) {
-				this.right = this.transform.Find ("right").GetComponent<PlanetSide> ();
-			}
-			if (this.left == null) {
-				this.left = this.transform.Find ("left").GetComponent<PlanetSide> ();
-			}
-			if (this.forward == null) {
-				this.forward = this.transform.Find ("forward").GetComponent<PlanetSide> ();
-			}
-			if (this.back == null) {
-				this.back = this.transform.Find ("back").GetComponent<PlanetSide> ();
-			}
-			if (this.vegetationFolder == null) {
-				this.vegetationFolder = this.transform.Find ("Vegetation");
-				if (this.vegetationFolder == null) {
-					this.vegetationFolder = (new GameObject ()).transform;
-					this.vegetationFolder.name = "Vegetation";
-					this.vegetationFolder.parent = this.transform;
-					this.vegetationFolder.localPosition = Vector3.zero;
-					this.vegetationFolder.localRotation = Quaternion.identity;
-					this.vegetationFolder.localScale = Vector3.one;
-				}
-			}
-			
-			this.planetSides = new List<PlanetSide> ();
-			this.planetSides.Add (this.up);
-			this.planetSides.Add (this.down);
-			this.planetSides.Add (this.right);
-			this.planetSides.Add (this.left);
-			this.planetSides.Add (this.forward);
-			this.planetSides.Add (this.back);
-		}
-		
-		public PlanetSide GetPlanetSideFor (Vector3 localPos) {
-			PlanetSide targetPlanetSide = this.up;
-			float angle = Vector3.Angle (this.transform.up, localPos);
-			
-			if (Vector3.Angle (-this.transform.up, localPos) < angle) {
-				targetPlanetSide = this.down;
-				angle = Vector3.Angle (-this.transform.up, localPos);
-			}
-			
-			if (Vector3.Angle (this.transform.right, localPos) < angle) {
-				targetPlanetSide = this.right;
-				angle = Vector3.Angle (this.transform.right, localPos);
-			}
-			if (Vector3.Angle (-this.transform.right, localPos) < angle) {
-				targetPlanetSide = this.left;
-				angle = Vector3.Angle (-this.transform.right, localPos);
-			}
-			
-			if (Vector3.Angle (this.transform.forward, localPos) < angle) {
-				targetPlanetSide = this.forward;
-				angle = Vector3.Angle (this.transform.forward, localPos);
-			}
-			if (Vector3.Angle (-this.transform.forward, localPos) < angle) {
-				targetPlanetSide = this.back;
-				angle = Vector3.Angle (-this.transform.forward, localPos);
-			}
-			
-			return targetPlanetSide;
-		}
-		
-		public void AddBlockAt (Vector3 worldPos, int block) {
-			Vector3 localPos = this.transform.InverseTransformPoint (worldPos);
-			PlanetSide pSide = this.GetPlanetSideFor (localPos);
-			pSide.AddBlockAt (localPos, block);
-		}
-		
-		public void AddGameObjectAtCursor (GameObject prefab) {
-			GameObject dropped = Instantiate (prefab, Vector3.zero, Quaternion.identity) as GameObject;
-			dropped.transform.parent = PlanetCursor.cursorPlanetSide.transform;
-			dropped.transform.localPosition = PlanetCursor.GetLocalPosBlockCenter ();
-			float a = Vector3.Angle (dropped.transform.up, (dropped.transform.position - dropped.transform.parent.position));
-			dropped.transform.RotateAround (dropped.transform.position, Vector3.Cross (dropped.transform.up, (dropped.transform.position - dropped.transform.parent.position)), a);
-			dropped.transform.RotateAround (dropped.transform.position, dropped.transform.up, UnityEngine.Random.Range (0, 360f));
-			dropped.transform.parent = this.vegetationFolder;
-		}
-		
-		public void AddGameObjectAt (int i, int j, int k, PlanetSide pSide, GameObject prefab) {
-			GameObject dropped = Instantiate (prefab, Vector3.zero, Quaternion.identity) as GameObject;
-			dropped.transform.parent = pSide.transform;
-			dropped.transform.localPosition = pSide.GetLocalPosBlockCenter (i, j, k);
-			float a = Vector3.Angle (dropped.transform.up, (dropped.transform.position - dropped.transform.parent.position));
-			dropped.transform.RotateAround (dropped.transform.position, Vector3.Cross (dropped.transform.up, (dropped.transform.position - dropped.transform.parent.position)), a);
-			dropped.transform.RotateAround (dropped.transform.position, dropped.transform.up, UnityEngine.Random.Range (0, 360f));
-			dropped.transform.parent = this.vegetationFolder;
-		}
-		
-		public void ClearVegetation () {
-			DestroyImmediate (this.vegetationFolder.gameObject);
-			this.vegetationFolder = (new GameObject ()).transform;
-			this.vegetationFolder.name = "Vegetation";
-			this.vegetationFolder.parent = this.transform;
-			this.vegetationFolder.localPosition = Vector3.zero;
-			this.vegetationFolder.localRotation = Quaternion.identity;
-			this.vegetationFolder.localScale = Vector3.one;
-		}
-		
-		public void SetCursorAt (int blockType, Vector3 worldPos) {
-			Vector3 localPos = this.transform.InverseTransformPoint (worldPos);
-			PlanetSide pSide = this.GetPlanetSideFor (localPos);
-			Vector3 ijk = pSide.GetIJKFor (localPos);
-			PlanetCursor.SetAt (blockType, (int) ijk.x, (int) ijk.y, (int) ijk.z, pSide);
-		}
-		
-		public void BuildColliders () {
-			PlanetChunck[] chuncks = this.GetComponentsInChildren<PlanetChunck> ();
-			
-			int nbChuncks = chuncks.Length;
-			int counter = 0;
-			
-			foreach (PlanetChunck chunck in chuncks) {
-				#if UNITY_EDITOR
-				EditorUtility.DisplayProgressBar ("Planet Builder", "Building Mesh Colliders...", (float) counter / (float) nbChuncks);
-				counter ++;
-				#endif
-				
-				MeshCollider mc = chunck.GetComponent<MeshCollider> ();
-				if (mc == null) {
-					Collider c = chunck.GetComponent<Collider> ();
-					if (c != null) {
-						DestroyImmediate (c);
-					}
-					mc = chunck.gameObject.AddComponent<MeshCollider> ();
-				}
-				
-				mc.sharedMesh = chunck.meshCollider;
-			}
-			
-			#if UNITY_EDITOR
-			EditorUtility.ClearProgressBar ();
-			#endif
+            this.Initialize();
+
+            foreach (PlanetSide planetSide in planetSides.Values)
+            {
+                planetSide.Initialize(this);
+            }
 		}
 
-		public void BuildLiteColliders () {
-			PlanetChunck[] chuncks = this.GetComponentsInChildren<PlanetChunck> ();
-			
-			int nbChuncks = chuncks.Length;
-			int counter = 0;
-			
-			foreach (PlanetChunck chunck in chuncks) {
-				#if UNITY_EDITOR
-				EditorUtility.DisplayProgressBar ("Planet Builder", "Building Lite Colliders...", (float) counter / (float) nbChuncks);
-				counter ++;
-				#endif
-				
-				Collider c = chunck.gameObject.GetComponent<Collider> ();
-				DestroyImmediate (c);
+        public void Initialize()
+        {
+            Debug.Log("Planet Initialize");
+            PlanetSide[] planetSidesInChildren = this.GetComponentsInChildren<PlanetSide>();
 
-				chunck.gameObject.AddComponent<SphereCollider> ();
-			}
-			
-			#if UNITY_EDITOR
-			EditorUtility.ClearProgressBar ();
-			#endif
+            this.ReadPlanetInfoFile();
+            this.planetSides = new Dictionary<Planet.Side, PlanetSide>();
+            this.size = Mathf.FloorToInt(Mathf.Pow(2f, this.degree));
+            this.rMin = Mathf.FloorToInt((2 / Mathf.PI - 1 / 8f) * size);
+
+            // Search for PlanetSide in Children. If any cannot be found, it is instantiated.
+            foreach (Side side in Enum.GetValues(typeof(Planet.Side))) {
+
+                bool instantiatePlanetSide = true;
+                PlanetSide newPlanetSide = null;
+
+                // Search for an already existing planetSide.
+                foreach (PlanetSide planetSide in planetSidesInChildren)
+                {
+                    if (planetSide.side == side)
+                    {
+                        newPlanetSide = planetSide;
+                        instantiatePlanetSide = false;
+                    }
+                }
+
+                // If no existing PlanetSide has been found, create one.
+                if (instantiatePlanetSide)
+                {
+                    GameObject newSideGameObject = new GameObject();
+                    newSideGameObject.name = side.ToString();
+                    newSideGameObject.transform.parent = this.transform;
+                    newSideGameObject.transform.localPosition = Vector3.zero;
+                    newSideGameObject.transform.localRotation = PlanetUtility.LocalRotationFromSide(side);
+
+                    newPlanetSide = newSideGameObject.AddComponent<PlanetSide>();
+                    newPlanetSide.side = side;
+                }
+
+                this.planetSides.Add(side, newPlanetSide);
+            }
 		}
-		
-		public void DestroyColliders () {
-			PlanetChunck[] chuncks = this.GetComponentsInChildren<PlanetChunck> ();
-			
-			foreach (PlanetChunck chunck in chuncks) {
-				MeshCollider mc = chunck.gameObject.GetComponent<MeshCollider> ();
-				if (mc != null) {
-					DestroyImmediate (mc);
-				}
-			}
-		}
+        
+        public void Clear()
+        {
+            while (this.transform.childCount > 0)
+            {
+                DestroyImmediate(this.transform.GetChild(0).gameObject);
+            }
+            if (this.planetSides != null)
+            {
+                this.planetSides.Clear();
+            }
+        }
+
+        public PlanetSide WorldPositionToPlanetSide(Vector3 worldPos)
+        {
+            Vector3 localPos = this.transform.worldToLocalMatrix * worldPos;
+
+            float[] angles = new float[6];
+            angles[(int)Planet.Side.Right] = Vector3.Angle(localPos, Vector3.right);
+            angles[(int)Planet.Side.Left] = Vector3.Angle(localPos, -Vector3.right);
+            angles[(int)Planet.Side.Forward] = Vector3.Angle(localPos, Vector3.forward);
+            angles[(int)Planet.Side.Back] = Vector3.Angle(localPos, -Vector3.forward);
+            angles[(int)Planet.Side.Up] = Vector3.Angle(localPos, Vector3.up);
+            angles[(int)Planet.Side.Down] = Vector3.Angle(localPos, -Vector3.up);
+
+            Planet.Side smallest = Planet.Side.Up;
+            foreach (Planet.Side side in Enum.GetValues(typeof(Planet.Side)))
+            {
+                if (angles[(int)side] < angles[(int)smallest])
+                {
+                    smallest = side;
+                }
+            }
+
+            return this.planetSides[smallest];
+        }
+
+        public void WorldPositionToIJK(Vector3 worldPos, out PlanetChunck planetChunck, out int i, out int j, out int k)
+        {
+            PlanetSide planetSide;
+            int iPos, jPos, kPos;
+            WorldPositionToIJKPos(worldPos, out planetSide, out iPos, out jPos, out kPos);
+
+            planetChunck = planetSide.chuncks[iPos / PlanetUtility.ChunckSize][jPos / PlanetUtility.ChunckSize][kPos / PlanetUtility.ChunckSize];
+            i = iPos % PlanetUtility.ChunckSize;
+            j = jPos % PlanetUtility.ChunckSize;
+            k = kPos % PlanetUtility.ChunckSize;
+        }
+
+        public void WorldPositionToIJKPos(Vector3 worldPos, out PlanetSide planetSide, out int iPos, out int jPos, out int kPos)
+        {
+            planetSide = WorldPositionToPlanetSide(worldPos);
+            Vector3 localPos = planetSide.transform.worldToLocalMatrix * worldPos;
+            float r = localPos.magnitude;
+
+            if (Mathf.Abs(localPos.x) > 1f)
+            {
+                localPos = localPos / localPos.x;
+            }
+            if (Mathf.Abs(localPos.y) > 1f)
+            {
+                localPos = localPos / localPos.y;
+            }
+            if (Mathf.Abs(localPos.z) > 1f)
+            {
+                localPos = localPos / localPos.z;
+            }
+
+            float tanX = localPos.x;
+            float tanY = localPos.y;
+            float tanZ = localPos.z;
+
+            float xDeg = Mathf.Atan(tanX);
+            float yDeg = Mathf.Atan(tanY);
+            float zDeg = Mathf.Atan(tanZ);
+
+            xDeg = Mathf.Rad2Deg * xDeg;
+            yDeg = Mathf.Rad2Deg * yDeg;
+            zDeg = Mathf.Rad2Deg * zDeg;
+
+            iPos = Mathf.FloorToInt((zDeg + 45f) / 90f * planetSide.Size);
+            jPos = Mathf.FloorToInt((yDeg + 45f) / 90f * planetSide.Size);
+            kPos = Mathf.FloorToInt(r - rMin);
+        }
+
+        public Byte WorldPositionToData(Vector3 worldPos)
+        {
+            PlanetChunck planetChunck;
+            int i, j, k;
+            this.WorldPositionToIJK(worldPos, out planetChunck, out i, out j, out k);
+
+            return planetChunck.Data(i, j, k);
+        }
+
+        public Mesh WorldPositionToBlockMesh(int iPos, int jPos, int kPos, Byte block)
+        {
+            int size = this.size;
+            int rMin = this.rMin;
+
+            Mesh m = new Mesh();
+            List<Vector3> vertices = new List<Vector3>();
+            List<Vector2> uvs = new List<Vector2>();
+            List<int> trianglesTop = new List<int>();
+            List<int> trianglesSide = new List<int>();
+            List<int> trianglesBottom = new List<int>();
+
+            int a = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos + 1, iPos) * (kPos + rMin));
+            int b = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos + 1, iPos) * (kPos + 1 + rMin));
+            int c = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos, iPos) * (kPos + 1 + rMin));
+            int d = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos, iPos) * (kPos + rMin));
+
+            trianglesSide.Add(a);
+            trianglesSide.Add(b);
+            trianglesSide.Add(c);
+
+            trianglesSide.Add(a);
+            trianglesSide.Add(c);
+            trianglesSide.Add(d);
+
+            PlanetUtility.AddUV(uvs, block);
+                
+            a = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos, iPos) * (kPos + rMin));
+            b = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos, iPos) * (kPos + 1 + rMin));
+            c = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos, iPos + 1) * (kPos + 1 + rMin));
+            d = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos, iPos + 1) * (kPos + rMin));
+
+            trianglesSide.Add(a);
+            trianglesSide.Add(b);
+            trianglesSide.Add(c);
+
+            trianglesSide.Add(a);
+            trianglesSide.Add(c);
+            trianglesSide.Add(d);
+
+            PlanetUtility.AddUV(uvs, block);
+                
+            a = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos, iPos) * (kPos + rMin));
+            b = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos, iPos + 1) * (kPos + rMin));
+            c = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos + 1, iPos + 1) * (kPos + rMin));
+            d = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos + 1, iPos) * (kPos + rMin));
+
+            trianglesTop.Add(a);
+            trianglesTop.Add(b);
+            trianglesTop.Add(c);
+
+            trianglesTop.Add(a);
+            trianglesTop.Add(c);
+            trianglesTop.Add(d);
+
+            PlanetUtility.AddUV(uvs, block);
+                
+            a = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos, iPos + 1) * (kPos + rMin));
+            b = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos, iPos + 1) * (kPos + 1 + rMin));
+            c = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos + 1, iPos + 1) * (kPos + 1 + rMin));
+            d = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos + 1, iPos + 1) * (kPos + rMin));
+
+            trianglesSide.Add(a);
+            trianglesSide.Add(b);
+            trianglesSide.Add(c);
+
+            trianglesSide.Add(a);
+            trianglesSide.Add(c);
+            trianglesSide.Add(d);
+
+            PlanetUtility.AddUV(uvs, block);
+                
+            a = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos + 1, iPos + 1) * (kPos + rMin));
+            b = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos + 1, iPos + 1) * (kPos + 1 + rMin));
+            c = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos + 1, iPos) * (kPos + 1 + rMin));
+            d = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos + 1, iPos) * (kPos + rMin));
+
+            trianglesSide.Add(a);
+            trianglesSide.Add(b);
+            trianglesSide.Add(c);
+
+            trianglesSide.Add(a);
+            trianglesSide.Add(c);
+            trianglesSide.Add(d);
+
+            PlanetUtility.AddUV(uvs, block);
+                
+            a = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos, iPos) * (kPos + 1 + rMin));
+            b = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos + 1, iPos) * (kPos + 1 + rMin));
+            c = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos + 1, iPos + 1) * (kPos + 1 + rMin));
+            d = vertices.Count;
+            vertices.Add(PlanetUtility.EvaluateVertex(size, jPos, iPos + 1) * (kPos + 1 + rMin));
+
+            trianglesTop.Add(a);
+            trianglesTop.Add(b);
+            trianglesTop.Add(c);
+
+            trianglesTop.Add(a);
+            trianglesTop.Add(c);
+            trianglesTop.Add(d);
+
+            PlanetUtility.AddUV(uvs, block);
+
+            m.vertices = vertices.ToArray();
+            m.subMeshCount = 3;
+            m.SetTriangles(trianglesTop, 0);
+            m.SetTriangles(trianglesSide, 1);
+            m.SetTriangles(trianglesBottom, 2);
+            m.uv = uvs.ToArray();
+            m.RecalculateNormals();
+
+            if (block == 0)
+            {
+                Vector3[] eraserVertices = new Vector3[m.vertices.Length];
+                for (int i = 0; i < m.vertices.Length; i++)
+                {
+                    eraserVertices[i] = m.vertices[i] + m.normals[i] * 0.05f;
+                }
+                m.vertices = eraserVertices;
+            }
+
+            return m;
+        }
+
+        public PlanetChunck SetDataAtWorldPos(Vector3 worldPos, Byte data, bool ifZero = false, bool rebuild = true, bool save = true)
+        {
+            PlanetChunck planetChunck;
+            int i, j, k;
+            this.WorldPositionToIJK(worldPos, out planetChunck, out i, out j, out k);
+            if ((ifZero && planetChunck.data[i][j][k] == 0) || !ifZero)
+            {
+                planetChunck.SetData(data, i, j, k);
+            }
+            else
+            {
+                return null;
+            }
+            if (rebuild)
+            {
+                planetChunck.SetMesh();
+            }
+            if (save)
+            {
+                PlanetUtility.Save(planetChunck.PlanetName, planetChunck.data, planetChunck.iPos, planetChunck.jPos, planetChunck.kPos, planetChunck.planetSide.side);
+            }
+            return planetChunck;
+        }
+
+        public PlanetChunck SetDataAtIJKPos(PlanetSide planetSide, int iPos, int jPos, int kPos, Byte data, bool ifZero = false, bool rebuild = true, bool save = true)
+        {
+            PlanetChunck planetChunck = planetSide.chuncks[iPos / PlanetUtility.ChunckSize][jPos / PlanetUtility.ChunckSize][kPos / PlanetUtility.ChunckSize];
+            if ((ifZero && planetChunck.data[iPos % PlanetUtility.ChunckSize][jPos % PlanetUtility.ChunckSize][kPos % PlanetUtility.ChunckSize] == 0) || !ifZero)
+            {
+                planetChunck.SetData(data, iPos % PlanetUtility.ChunckSize, jPos % PlanetUtility.ChunckSize, kPos % PlanetUtility.ChunckSize);
+            }
+            if (rebuild)
+            {
+                planetChunck.SetMesh();
+            }
+            if (save)
+            {
+                PlanetUtility.Save(planetChunck.PlanetName, planetChunck.data, planetChunck.iPos, planetChunck.jPos, planetChunck.kPos, planetChunck.planetSide.side);
+            }
+            return planetChunck;
+        }
+
+        public void ReadPlanetInfoFile()
+        {
+            string directoryPath = Application.dataPath + "/../PlanetData/" + this.planetName + "/";
+            string dataFilePath = directoryPath + "/" + this.planetName + ".info";
+            FileStream dataFile = new FileStream(dataFilePath, FileMode.Open, FileAccess.Read);
+            StreamReader dataStream = new StreamReader(dataFile);
+
+            dataStream.ReadLine();
+            string l = dataStream.ReadLine();
+            Debug.Log(l);
+            this.degree = int.Parse(l.Split('=')[1]);
+            l = dataStream.ReadLine();
+            this.waterLevel = int.Parse(l.Split('=')[1]);
+
+            dataStream.Close();
+            dataFile.Close();
+        }
 	}
 }

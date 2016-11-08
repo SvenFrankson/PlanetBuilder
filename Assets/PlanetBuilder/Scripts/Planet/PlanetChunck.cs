@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
+using UnityEditor;
 using System.Collections;
 
 using System.Collections.Generic;
+using System;
 
 namespace SvenFrankson.Game.SphereCraft {
 
@@ -13,440 +15,348 @@ namespace SvenFrankson.Game.SphereCraft {
 			Bottom
 		}
 
+        public int Degree
+        {
+            get
+            {
+                return this.planetSide.Degree;
+            }
+        }
+        public int WaterLevel
+        {
+            get
+            {
+                return this.planetSide.WaterLevel;
+            }
+        }
+        public string PlanetName
+        {
+            get
+            {
+                return this.planetSide.PlanetName;
+            }
+        }
 		public PlanetSide planetSide;
-		public Vector3 orientation;
-		public Vector3 posInChunck;
-		public int [] blocks;
-		public Mesh meshCollider;
+        public int iPos;
+        public int jPos;
+        public int kPos;
+        public Byte[][][] data;
+        public Byte Data(int i, int j, int k)
+        {
+            return this.data[i][j][k];
+        }
+        public void SetData(Byte b, int i, int j, int k)
+        {
+            this.data[i][j][k] = b;
+        }
+        private Vector3 localUp = Vector3.up;
+        public Vector3 LocalUp
+        {
+            get
+            {
+                return localUp;
+            }
+        }
+        public float AngleToReferential;
+        private bool meshSet = false;
+        public bool MeshSet
+        {
+            get
+            {
+                return meshSet;
+            }
+        }
 
-		public void Initialize (Vector3 orientation, Vector3 posInChunck, PlanetSide planetSide) {
-			this.orientation = orientation;
-			this.posInChunck = posInChunck;
-			this.planetSide = planetSide;
+        public bool DebugMode = false;
 
-			this.blocks = new int[PlanetUtility.ChunckSize * PlanetUtility.ChunckSize * 32];
-			for (int i = 0; i < PlanetUtility.ChunckSize; i++) {
-				for (int j = 0; j < PlanetUtility.ChunckSize; j++) {
-					for (int k = 0; k < 32; k++) {
-						this.blocks[i + j * PlanetUtility.ChunckSize + k * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize] = 0;
-					}
-				}
-			}
+        public void Update()
+        {
+            if (DebugMode)
+            {
+                Debug.DrawLine(this.transform.position, this.transform.TransformVector(this.LocalUp) * 200, Color.red);
+            }
+        }
+
+        public void Initialize()
+        {
+            PlanetChunckManager.Instances.Add(this);
+
+            this.transform.parent = this.planetSide.transform;
+            this.name = "Chunck_" + this.iPos + "|" + this.jPos + "|" + this.kPos;
+            this.transform.localPosition = Vector3.zero;
+            this.transform.localRotation = Quaternion.identity;
+            this.transform.localScale = Vector3.one;
+
+            int y = PlanetUtility.ChunckSize / 2 + this.jPos * PlanetUtility.ChunckSize;
+            int z = PlanetUtility.ChunckSize / 2 + this.iPos * PlanetUtility.ChunckSize;
+            this.localUp = PlanetUtility.EvaluateVertex(this.planetSide.Size, y, z).normalized;
+            this.AngleToReferential = Vector3.Angle(PlanetChunckManager.Instance.Referential.position - this.transform.position, this.transform.TransformVector(this.LocalUp));
 		}
 
-		public Mesh BuildMesh () {
-			Mesh mesh = new Mesh ();
-			mesh.subMeshCount = 2;
+        public void BuildMeshAlt (out Mesh mesh, out Mesh meshCollider)
+        {
+            int size = this.planetSide.Size;
+            int rMin = this.planetSide.RMin;
+            float rWater = WaterLevel - 0.2f;
 
-			this.meshCollider = new Mesh ();
-			this.meshCollider.subMeshCount = 1;
+            mesh = new Mesh();
+            List<Vector3> vertices = new List<Vector3>();
+            List<Vector2> uvs = new List<Vector2>();
+            List<int> trianglesTop = new List<int>();
+            List<int> trianglesSide = new List<int>();
+            List<int> trianglesBottom = new List<int>();
+            List<int> trianglesWater = new List<int>();
 
-			List<Vector3> vertices = new List<Vector3> ();
-			List<int>[] triangles = new List<int>[2];
-			for (int i = 0; i < 2; i++) {
-				triangles[i] = new List<int> ();
-			}
-			List<Vector3> normals = new List<Vector3> ();
-			List<Vector2> uv = new List<Vector2> ();
+            for (int i = 0; i < PlanetUtility.ChunckSize; i++)
+            {
+                for (int j = 0; j < PlanetUtility.ChunckSize; j++)
+                {
+                    for (int k = 0; k < PlanetUtility.ChunckSize; k++)
+                    {
+                        int y = j + this.jPos * PlanetUtility.ChunckSize;
+                        int z = i + this.iPos * PlanetUtility.ChunckSize;
+                        if ((k + this.kPos * PlanetUtility.ChunckSize) == WaterLevel)
+                        {
+                            if (this.data[i][j][k] == 0)
+                            {
+                                int a = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (rWater + rMin));
+                                int b = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (rWater + rMin));
+                                int c = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (rWater + rMin));
+                                int d = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (rWater + rMin));
 
-			int iOff = (int) this.posInChunck.x * PlanetUtility.ChunckSize;
-			int jOff = (int) this.posInChunck.y * PlanetUtility.ChunckSize;
-			int kOff = (int) this.posInChunck.z * PlanetUtility.ChunckSize;
+                                trianglesWater.Add(a);
+                                trianglesWater.Add(b);
+                                trianglesWater.Add(c);
 
-			Vector3[][] baseMesh = PlanetUtility.GetBaseMesh (this.planetSide.subDegree).vertices;
+                                trianglesWater.Add(a);
+                                trianglesWater.Add(c);
+                                trianglesWater.Add(d);
 
-			int a = 0;
-			int b = 0;
-			int c = 0;
-			int d = 0;
+                                AddUVWater(uvs);
+                            }
+                        }
+                        Byte block = this.data[i][j][k];
+                        if (block != 0)
+                        {
+                            if ((i - 1 < 0) || (this.data[i - 1][j][k] < 128 && this.data[i - 1][j][k] != block))
+                            {
+                                int a = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int b = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int c = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int d = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
 
-			for (int i = 0; i < PlanetUtility.ChunckSize; i++) {
-				for (int j = 0; j < PlanetUtility.ChunckSize; j++) {
-					for (int k = 0; k < 32; k++) {
-						if (this.blocks [i + j * PlanetUtility.ChunckSize + k * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize] == 0) {
-							if (k < this.planetSide.planet.waterLevel) {
-								this.blocks [i + j * PlanetUtility.ChunckSize + k * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize] = 2;
-							}
-						}
+                                trianglesSide.Add(a);
+                                trianglesSide.Add(b);
+                                trianglesSide.Add(c);
 
-						if (this.blocks [i + j * PlanetUtility.ChunckSize + k * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize] != 0) {
+                                trianglesSide.Add(a);
+                                trianglesSide.Add(c);
+                                trianglesSide.Add(d);
 
-							int blockType = this.blocks [i + j * PlanetUtility.ChunckSize + k * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize];
+                                PlanetUtility.AddUV(uvs, block);
+                            }
+                            if ((j - 1 < 0) || (this.data[i][j - 1][k] < 128 && this.data[i][j - 1][k] != block))
+                            {
+                                int a = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int b = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int c = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int d = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
 
-							bool isOnTop = false;
+                                trianglesSide.Add(a);
+                                trianglesSide.Add(b);
+                                trianglesSide.Add(c);
 
-							if (k + 1 < 32) {
-								if (this.blocks [i + j * PlanetUtility.ChunckSize + (k + 1) * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize] == 0) {
-									isOnTop = true;
-								}
-								else if (blockType == 2) {
-									if (this.blocks [i + j * PlanetUtility.ChunckSize + (k + 1) * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize] != 2) {
-										isOnTop = true;
-									}
-								}
-							}
-							else if (k + 1 == 32) {
-								isOnTop = true;
-							}
+                                trianglesSide.Add(a);
+                                trianglesSide.Add(c);
+                                trianglesSide.Add(d);
 
-							float blockHeight = 1f;
-							if ((blockType == 2) && (isOnTop)) {
-								blockHeight = 0.8f;
-							}
+                                PlanetUtility.AddUV(uvs, block);
+                            }
+                            if ((k - 1 < 0) || (this.data[i][j][k - 1] < 128 && this.data[i][j][k - 1] != block))
+                            {
+                                int a = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int b = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int c = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int d = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
 
-							int subMesh = 0;
-							if (blockType == 2) {
-								subMesh = 1;
-							}
+                                trianglesTop.Add(a);
+                                trianglesTop.Add(b);
+                                trianglesTop.Add(c);
 
-							bool buildIMinus = false;
+                                trianglesTop.Add(a);
+                                trianglesTop.Add(c);
+                                trianglesTop.Add(d);
 
-							if (blockType != 2) {
-								int iMinusBlock;
-								if (i > 0) {
-									iMinusBlock = this.blocks [i - 1 + j * PlanetUtility.ChunckSize + k * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize];
-								}
-								else if (i == 0) {
-									iMinusBlock = this.planetSide.GetBlockFor (iOff + i - 1, jOff + j, kOff + k);
-								}
-								else {
-									iMinusBlock = -1;
-								}
-								if (((iMinusBlock == 0) || (iMinusBlock == 2)) || (iMinusBlock == -1)) {
-									buildIMinus = true;
-								}
-							}
+                                PlanetUtility.AddUV(uvs, block);
+                            }
+                            if ((i + 1 >= PlanetUtility.ChunckSize) || (this.data[i + 1][j][k] < 128 && this.data[i + 1][j][k] != block))
+                            {
+                                int a = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int b = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int c = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int d = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
 
-							if (buildIMinus) {
-								a = vertices.Count;
-								vertices.Add (baseMesh[iOff + i][jOff + j + 1] + (kOff + k) * baseMesh[iOff + i][jOff + j + 1].normalized);
-								normals.Add ((baseMesh[iOff + i][jOff + j + 1] - baseMesh[iOff + i + 1][jOff + j + 1]).normalized);
-								
-								b = vertices.Count;
-								vertices.Add (baseMesh[iOff + i][jOff + j + 1] + (kOff + k + blockHeight) * baseMesh[iOff + i][jOff + j + 1].normalized);
-								normals.Add ((baseMesh[iOff + i][jOff + j + 1] - baseMesh[iOff + i + 1][jOff + j + 1]).normalized);
-								
-								c = vertices.Count;
-								vertices.Add (baseMesh[iOff + i][jOff + j] + (kOff + k + blockHeight) * baseMesh[iOff + i][jOff + j].normalized);
-								normals.Add ((baseMesh[iOff + i][jOff + j] - baseMesh[iOff + i + 1][jOff + j]).normalized);
-								
-								d = vertices.Count;
-								vertices.Add (baseMesh[iOff + i][jOff + j] + (kOff + k) * baseMesh[iOff + i][jOff + j].normalized);
-								normals.Add ((baseMesh[iOff + i][jOff + j] - baseMesh[iOff + i + 1][jOff + j]).normalized);
+                                trianglesSide.Add(a);
+                                trianglesSide.Add(b);
+                                trianglesSide.Add(c);
 
-								this.AddUV (uv, blockType, CubeFace.Side, isOnTop);
-								
-								triangles[subMesh].Add (a);
-								triangles[subMesh].Add (b);
-								triangles[subMesh].Add (c);
-								
-								triangles[subMesh].Add (a);
-								triangles[subMesh].Add (c);
-								triangles[subMesh].Add (d);
-							}
+                                trianglesSide.Add(a);
+                                trianglesSide.Add(c);
+                                trianglesSide.Add(d);
 
-							bool buildIPlus = false;
+                                PlanetUtility.AddUV(uvs, block);
+                            }
+                            if ((j + 1 >= PlanetUtility.ChunckSize) || (this.data[i][j + 1][k] < 128 && this.data[i][j + 1][k] != block))
+                            {
+                                int a = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int b = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int c = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int d = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
 
-							if (blockType != 2) {
-								int iPlusBlock;
-								if (i + 1 < PlanetUtility.ChunckSize) {
-									iPlusBlock = this.blocks [i + 1 + j * PlanetUtility.ChunckSize + k * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize];
-								}
-								else if (i + 1 == PlanetUtility.ChunckSize) {
-									iPlusBlock = this.planetSide.GetBlockFor (iOff + i + 1, jOff + j, kOff + k);
-								}
-								else {
-									iPlusBlock = -1;
-								}
-								if (((iPlusBlock == 0) || (iPlusBlock == 2)) || (iPlusBlock == -1)) {
-									buildIPlus = true;
-								}
-							}
+                                trianglesSide.Add(a);
+                                trianglesSide.Add(b);
+                                trianglesSide.Add(c);
 
-							if (buildIPlus) {
-								a = vertices.Count;
-								vertices.Add (baseMesh[iOff + i + 1][jOff + j] + (kOff + k) * baseMesh[iOff + i + 1][jOff + j].normalized);
-								normals.Add ((baseMesh[iOff + i + 1][jOff + j] - baseMesh[iOff + i][jOff + j]).normalized);
-								
-								b = vertices.Count;
-								vertices.Add (baseMesh[iOff + i + 1][jOff + j] + (kOff + k + blockHeight) * baseMesh[iOff + i + 1][jOff + j].normalized);
-								normals.Add ((baseMesh[iOff + i + 1][jOff + j] - baseMesh[iOff + i][jOff + j]).normalized);
-								
-								c = vertices.Count;
-								vertices.Add (baseMesh[iOff + i + 1][jOff + j + 1] + (kOff + k + blockHeight) * baseMesh[iOff + i + 1][jOff + j + 1].normalized);
-								normals.Add ((baseMesh[iOff + i + 1][jOff + j + 1] - baseMesh[iOff + i][jOff + j + 1]).normalized);
-								
-								d = vertices.Count;
-								vertices.Add (baseMesh[iOff + i + 1][jOff + j + 1] + (kOff + k) * baseMesh[iOff + i + 1][jOff + j + 1].normalized);
-								normals.Add ((baseMesh[iOff + i + 1][jOff + j + 1] - baseMesh[iOff + i][jOff + j + 1]).normalized);
-								
-								this.AddUV (uv, blockType, CubeFace.Side, isOnTop);
-								
-								triangles[subMesh].Add (a);
-								triangles[subMesh].Add (b);
-								triangles[subMesh].Add (c);
-								
-								triangles[subMesh].Add (a);
-								triangles[subMesh].Add (c);
-								triangles[subMesh].Add (d);
-							}
+                                trianglesSide.Add(a);
+                                trianglesSide.Add(c);
+                                trianglesSide.Add(d);
 
-							bool buildJMinus = false;
+                                PlanetUtility.AddUV(uvs, block);
+                            }
+                            if ((k + 1 >= PlanetUtility.ChunckSize) || (this.data[i][j][k + 1] < 128 && this.data[i][j][k + 1] != block))
+                            {
+                                int a = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int b = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int c = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                int d = vertices.Count;
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
 
-							if (blockType != 2) {
-								int jMinusBlock;
-								if (j > 0) {
-									jMinusBlock = this.blocks [i + (j - 1) * PlanetUtility.ChunckSize + k * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize];
-								}
-								else if (j == 0) {
-									jMinusBlock = this.planetSide.GetBlockFor (iOff + i, jOff + j - 1, kOff + k);
-								}
-								else {
-									jMinusBlock = -1;
-								}
-								if (((jMinusBlock == 0) || (jMinusBlock == 2)) || (jMinusBlock == -1)) {
-									buildJMinus = true;
-								}
-							}
+                                trianglesTop.Add(a);
+                                trianglesTop.Add(b);
+                                trianglesTop.Add(c);
 
-							if (buildJMinus) {
-								a = vertices.Count;
-								vertices.Add (baseMesh[iOff + i][jOff + j] + (kOff + k) * baseMesh[iOff + i][jOff + j].normalized);
-								normals.Add ((baseMesh[iOff + i][jOff + j] - baseMesh[iOff + i][jOff + j + 1]).normalized);
-								
-								b = vertices.Count;
-								vertices.Add (baseMesh[iOff + i][jOff + j] + (kOff + k + blockHeight) * baseMesh[iOff + i][jOff + j].normalized);
-								normals.Add ((baseMesh[iOff + i][jOff + j] - baseMesh[iOff + i][jOff + j + 1]).normalized);
-								
-								c = vertices.Count;
-								vertices.Add (baseMesh[iOff + i + 1][jOff + j] + (kOff + k + blockHeight) * baseMesh[iOff + i + 1][jOff + j].normalized);
-								normals.Add ((baseMesh[iOff + i + 1][jOff + j] - baseMesh[iOff + i + 1][jOff + j + 1]).normalized);
-								
-								d = vertices.Count;
-								vertices.Add (baseMesh[iOff + i + 1][jOff + j] + (kOff + k) * baseMesh[iOff + i + 1][jOff + j].normalized);
-								normals.Add ((baseMesh[iOff + i + 1][jOff + j] - baseMesh[iOff + i + 1][jOff + j + 1]).normalized);
-								
-								this.AddUV (uv, blockType, CubeFace.Side, isOnTop);
-								
-								triangles[subMesh].Add (a);
-								triangles[subMesh].Add (b);
-								triangles[subMesh].Add (c);
-								
-								triangles[subMesh].Add (a);
-								triangles[subMesh].Add (c);
-								triangles[subMesh].Add (d);
-							}
-							
-							bool buildJPlus = false;
-							
-							if (blockType != 2) {
-								int jPlusBlock;
-								if (j + 1 < PlanetUtility.ChunckSize) {
-									jPlusBlock = this.blocks [i + (j + 1) * PlanetUtility.ChunckSize + k * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize];
-								}
-								else if (j + 1 == PlanetUtility.ChunckSize) {
-									jPlusBlock = this.planetSide.GetBlockFor (iOff + i, jOff + j + 1, kOff + k);
-								}
-								else {
-									jPlusBlock = -1;
-								}
-								if (((jPlusBlock == 0) || (jPlusBlock == 2)) || (jPlusBlock == -1)) {
-									buildJPlus = true;
-								}
-							}
+                                trianglesTop.Add(a);
+                                trianglesTop.Add(c);
+                                trianglesTop.Add(d);
 
-							if (buildJPlus) {
-								a = vertices.Count;
-								vertices.Add (baseMesh[iOff + i + 1][jOff + j + 1] + (kOff + k) * baseMesh[iOff + i + 1][jOff + j + 1].normalized);
-								normals.Add ((baseMesh[iOff + i + 1][jOff + j + 1] - baseMesh[iOff + i + 1][jOff + j]).normalized);
-								
-								b = vertices.Count;
-								vertices.Add (baseMesh[iOff + i + 1][jOff + j + 1] + (kOff + k + blockHeight) * baseMesh[iOff + i + 1][jOff + j + 1].normalized);
-								normals.Add ((baseMesh[iOff + i + 1][jOff + j + 1] - baseMesh[iOff + i + 1][jOff + j]).normalized);
-								
-								c = vertices.Count;
-								vertices.Add (baseMesh[iOff + i][jOff + j + 1] + (kOff + k + blockHeight) * baseMesh[iOff + i][jOff + j + 1].normalized);
-								normals.Add ((baseMesh[iOff + i][jOff + j + 1] - baseMesh[iOff + i][jOff + j]).normalized);
-								
-								d = vertices.Count;
-								vertices.Add (baseMesh[iOff + i][jOff + j + 1] + (kOff + k) * baseMesh[iOff + i][jOff + j + 1].normalized);
-								normals.Add ((baseMesh[iOff + i][jOff + j + 1] - baseMesh[iOff + i][jOff + j]).normalized);
-								
-								this.AddUV (uv, blockType, CubeFace.Side, isOnTop);
-								
-								triangles[subMesh].Add (a);
-								triangles[subMesh].Add (b);
-								triangles[subMesh].Add (c);
-								
-								triangles[subMesh].Add (a);
-								triangles[subMesh].Add (c);
-								triangles[subMesh].Add (d);
-							}
-							
-							bool buildKMinus = false;
+                                PlanetUtility.AddUV(uvs, block);
+                            }
+                        }
+                    }
+                }
+            }
 
-							if (blockType != 2) {
-								if (k > 0) {
-									if ((this.blocks [i + j * PlanetUtility.ChunckSize + (k - 1) * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize] == 0) || (this.blocks [i + j * PlanetUtility.ChunckSize + (k - 1) * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize] == 2)) {
-										buildKMinus = true;
-									}
-								}
-								else if (k == 0) {
-									buildKMinus = false;
-								}
-							}
+            mesh.vertices = vertices.ToArray();
+            mesh.uv = uvs.ToArray();
+            mesh.subMeshCount = 4;
+            mesh.SetTriangles(trianglesTop, 0);
+            mesh.SetTriangles(trianglesSide, 1);
+            mesh.SetTriangles(trianglesBottom, 2);
+            mesh.SetTriangles(trianglesWater, 3);
+            mesh.RecalculateNormals();
 
-							if (buildKMinus) {
-								a = vertices.Count;
-								vertices.Add (baseMesh[iOff + i][jOff + j + 1] + (kOff + k) * baseMesh[iOff + i][jOff + j + 1].normalized);
-								normals.Add (-baseMesh[iOff + i][jOff + j + 1].normalized);
-								
-								b = vertices.Count;
-								vertices.Add (baseMesh[iOff + i][jOff + j] + (kOff + k) * baseMesh[iOff + i][jOff + j].normalized);
-								normals.Add (-baseMesh[iOff + i][jOff + j].normalized);
-								
-								c = vertices.Count;
-								vertices.Add (baseMesh[iOff + i + 1][jOff + j] + (kOff + k) * baseMesh[iOff + i + 1][jOff + j].normalized);
-								normals.Add (-baseMesh[iOff + i + 1][jOff + j].normalized);
-								
-								d = vertices.Count;
-								vertices.Add (baseMesh[iOff + i + 1][jOff + j + 1] + (kOff + k) * baseMesh[iOff + i + 1][jOff + j + 1].normalized);
-								normals.Add (-baseMesh[iOff + i + 1][jOff + j + 1].normalized);
-								
-								this.AddUV (uv, blockType, CubeFace.Bottom, isOnTop);
-								
-								triangles[subMesh].Add (a);
-								triangles[subMesh].Add (b);
-								triangles[subMesh].Add (c);
-								
-								triangles[subMesh].Add (a);
-								triangles[subMesh].Add (c);
-								triangles[subMesh].Add (d);
-							}
-							
-							bool buildKPlus = false;
+            meshCollider = new Mesh();
+            meshCollider.vertices = vertices.ToArray();
+            List<int> meshColliderTriangles = new List<int>(trianglesTop);
+            meshColliderTriangles.AddRange(trianglesSide);
+            meshColliderTriangles.AddRange(trianglesBottom);
+            meshCollider.triangles = meshColliderTriangles.ToArray();
+        }
 
-							if (blockType != 2) {
-								if (k + 1 < 32) {
-									if ((this.blocks [i + j * PlanetUtility.ChunckSize + (k + 1) * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize] == 0) || (this.blocks [i + j * PlanetUtility.ChunckSize + (k + 1) * PlanetUtility.ChunckSize * PlanetUtility.ChunckSize] == 2)) {
-										buildKPlus = true;
-									}
-								}
-								else if (k + 1 == 32) {
-									buildKPlus = true;
-								}
-							}
-							else if ((blockType == 2) && isOnTop) {
-								buildKPlus = true;
-							}
+        private void AddUVWater(List<Vector2> uvs)
+        {
+            Vector2 uvA = new Vector2(0f, 0f);
+            Vector2 uvB = new Vector2(0f, 1f);
+            Vector2 uvC = new Vector2(1f, 1f);
+            Vector2 uvD = new Vector2(1f, 0f);
 
-							if (buildKPlus) {
-								a = vertices.Count;
-								vertices.Add (baseMesh[iOff + i][jOff + j] + (kOff + k + blockHeight) * baseMesh[iOff + i][jOff + j].normalized);
-								normals.Add (baseMesh[iOff + i][jOff + j].normalized);
-								
-								b = vertices.Count;
-								vertices.Add (baseMesh[iOff + i][jOff + j + 1] + (kOff + k + blockHeight) * baseMesh[iOff + i][jOff + j + 1].normalized);
-								normals.Add (baseMesh[iOff + i][jOff + j + 1].normalized);
-								
-								c = vertices.Count;
-								vertices.Add (baseMesh[iOff + i + 1][jOff + j + 1] + (kOff + k + blockHeight) * baseMesh[iOff + i + 1][jOff + j + 1].normalized);
-								normals.Add (baseMesh[iOff + i + 1][jOff + j + 1].normalized);
-								
-								d = vertices.Count;
-								vertices.Add (baseMesh[iOff + i + 1][jOff + j] + (kOff + k + blockHeight) * baseMesh[iOff + i + 1][jOff + j].normalized);
-								normals.Add (baseMesh[iOff + i + 1][jOff + j].normalized);
-								
-								this.AddUV (uv, blockType, CubeFace.Top, isOnTop);
-								
-								triangles[subMesh].Add (a);
-								triangles[subMesh].Add (b);
-								triangles[subMesh].Add (c);
-								
-								triangles[subMesh].Add (a);
-								triangles[subMesh].Add (c);
-								triangles[subMesh].Add (d);
-							}
-						}
-					}
-				}
-			}
+            uvs.Add(uvA);
+            uvs.Add(uvB);
+            uvs.Add(uvC);
+            uvs.Add(uvD);
+        }
 
-			mesh.vertices = vertices.ToArray ();
-			this.meshCollider.vertices = vertices.ToArray ();
+		public void SetMesh (bool async = true) {
+            PlanetChunckManager.Instance.workingLock = true;
+            if (async)
+            {
+                StartCoroutine(SetMeshAsync());
+            }
+            else
+            {
+                if (this.data == null)
+                {
+                    this.data = PlanetUtility.Read(this.PlanetName, iPos, jPos, kPos, this.planetSide.side);
+                }
 
-			mesh.SetTriangles (triangles [0].ToArray(), 0);
-			mesh.SetTriangles (triangles [1].ToArray(), 1);
-			this.meshCollider.SetTriangles (triangles [0].ToArray(), 0);
+                Mesh mesh;
+                Mesh meshCollider;
+                this.BuildMeshAlt(out mesh, out meshCollider);
 
-			mesh.normals = normals.ToArray ();
-			mesh.uv = uv.ToArray ();
+                this.GetComponent<MeshFilter>().sharedMesh = mesh;
 
-			return mesh;
+                this.GetComponent<MeshRenderer>().materials = this.planetSide.Materials;
+
+                if (this.GetComponent<MeshCollider>())
+                {
+                    this.GetComponent<MeshCollider>().sharedMesh = meshCollider;
+                }
+
+                this.meshSet = true;
+            }
 		}
 
-		private void AddUV (List<Vector2> uvs, int blockType, CubeFace face, bool isOnTop) {
-			Vector2 offSet = Vector2.zero;
-			float padding = 5f;
-			Vector2 padding0 = new Vector2 (padding / 1024f, padding / 1024f);
-			Vector2 padding1 = new Vector2 (padding / 1024f, - padding / 1024f);
-			Vector2 padding2 = new Vector2 (- padding / 1024f, - padding / 1024f);
-			Vector2 padding3 = new Vector2 (- padding / 1024f, padding / 1024f);
+        IEnumerator SetMeshAsync()
+        {
+            if (this.data == null)
+            {
+                this.data = PlanetUtility.Read(this.PlanetName, iPos, jPos, kPos, this.planetSide.side);
+                yield return null;
+            }
 
-			if (blockType == 1) {
-				offSet = new Vector2 (0f, 3f/4f);
-			}
-			else if (blockType == 2) {
-				uvs.Add (new Vector2 (0f, 0f));
-				uvs.Add (new Vector2 (0f, 1f));
-				uvs.Add (new Vector2 (1f, 1f));
-				uvs.Add (new Vector2 (1f, 0f));
-				return;
-			}
-			else if (blockType == 3) {
-				offSet = new Vector2 (1f/4f, 3f/4f);
-			}
-			else if (blockType == 4) {
-				offSet = new Vector2 (1f/2f, 3f/4f);
-			}
-			else if (blockType == 5) {
-				offSet = new Vector2 (3f/4f, 3f/4f);
-			}
+            Mesh mesh;
+            Mesh meshCollider;
+            this.BuildMeshAlt(out mesh, out meshCollider);
 
-			if (face == CubeFace.Top) {
-				uvs.Add (offSet + new Vector2 (0f, 1f/8f) + padding0);
-				uvs.Add (offSet + new Vector2 (0f, 2f/8f) + padding1);
-				uvs.Add (offSet + new Vector2 (1f/8f, 2f/8f) + padding2);
-				uvs.Add (offSet + new Vector2 (1f/8f, 1f/8f) + padding3);
-			}
-			else if ((face == CubeFace.Side) && isOnTop) {
-				uvs.Add (offSet + new Vector2 (1f/8f, 1f/8f) + padding0);
-				uvs.Add (offSet + new Vector2 (1f/8f, 2f/8f) + padding1);
-				uvs.Add (offSet + new Vector2 (2f/8f, 2f/8f) + padding2);
-				uvs.Add (offSet + new Vector2 (2f/8f, 1f/8f) + padding3);
-			}
-			else if (((face == CubeFace.Side) && !isOnTop) || (face == CubeFace.Bottom)) {
-				uvs.Add (offSet + new Vector2 (0f, 0f) + padding0);
-				uvs.Add (offSet + new Vector2 (0f, 1f/8f) + padding1);
-				uvs.Add (offSet + new Vector2 (1f/8f, 1f/8f) + padding2);
-				uvs.Add (offSet + new Vector2 (1f/8f, 0f) + padding3);
-			}
-		}
+            this.GetComponent<MeshFilter>().sharedMesh = mesh;
 
-		public void SetMesh () {
-			this.transform.parent = this.planetSide.transform;
-			this.name = "Chunck_" + this.posInChunck.x + "|" + this.posInChunck.y + "|" + this.posInChunck.z;
-			this.transform.localPosition = Vector3.zero;
-			this.transform.localRotation = Quaternion.identity;
-			this.transform.localScale = Vector3.one;
+            this.GetComponent<MeshRenderer>().materials = this.planetSide.Materials;
+            yield return null;
 
-			this.GetComponent<MeshFilter> ().sharedMesh = this.BuildMesh ();
+            if (this.GetComponent<MeshCollider>())
+            {
+                this.GetComponent<MeshCollider>().sharedMesh = meshCollider;
+            }
 
-			this.GetComponent<MeshRenderer> ().materials = this.planetSide.materials;
-
-			if (this.GetComponent<MeshCollider> ()) {
-				this.GetComponent<MeshCollider> ().sharedMesh = this.meshCollider;
-			}
-		}
+            this.meshSet = true;
+            PlanetChunckManager.Instance.workingLock = false;
+        }
 	}
 }
