@@ -53,24 +53,21 @@ public class PlayerTest : MonoBehaviour {
     }
 
 	void Update () {
-        if (!Input.GetMouseButton(1))
+        if (Input.GetKey(KeyCode.Z))
         {
-            if (Input.GetKey(KeyCode.Z))
-            {
-                this.transform.position += 20f * Time.deltaTime * this.transform.forward;
-            }
-            if (Input.GetKey(KeyCode.S))
-            {
-                this.transform.position -= 20f * Time.deltaTime * this.transform.forward;
-            }
-            if (Input.GetKey(KeyCode.Q))
-            {
-                this.transform.rotation = Quaternion.AngleAxis(90f * Time.deltaTime, this.transform.forward) * this.transform.rotation;
-            }
-            if (Input.GetKey(KeyCode.D))
-            {
-                this.transform.rotation = Quaternion.AngleAxis(-90f * Time.deltaTime, this.transform.forward) * this.transform.rotation;
-            }
+            this.C_Rigidbody.MovePosition(this.transform.position + 5f * Time.deltaTime * this.transform.forward);
+        }
+        if (Input.GetKey(KeyCode.S))
+        {
+            this.C_Rigidbody.MovePosition(this.transform.position - 5f * Time.deltaTime * this.transform.forward);
+        }
+        if (Input.GetKey(KeyCode.Q))
+        {
+            this.C_Rigidbody.MovePosition(this.transform.position - 5f * Time.deltaTime * this.transform.right);
+        }
+        if (Input.GetKey(KeyCode.D))
+        {
+            this.C_Rigidbody.MovePosition(this.transform.position + 5f * Time.deltaTime * this.transform.right);
         }
         
         if (Input.GetMouseButton(1))
@@ -92,6 +89,10 @@ public class PlayerTest : MonoBehaviour {
 
     public void FixedUpdate()
     {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            this.C_Rigidbody.AddForce(5f * this.transform.up, ForceMode.Impulse);
+        }
         C_Rigidbody.AddForce(-(this.transform.position - this.target.transform.position).normalized * 9f);
     }
 

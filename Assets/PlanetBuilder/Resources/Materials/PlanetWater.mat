@@ -21,7 +21,7 @@ Material:
         second:
           m_Texture: {fileID: 2800000, guid: 62f55b82bed83cf44916e0b5a381795c, type: 3}
           m_Scale: {x: 1, y: 1}
-          m_Offset: {x: 0.33889523, y: 0.86598694}
+          m_Offset: {x: 0.20873988, y: 0.32636333}
       data:
         first:
           name: _ToonShade
