@@ -10,10 +10,10 @@ namespace SvenFrankson.Game.SphereCraft {
     {
         public enum Side
         {
-            Up = 0,
+            Top = 0,
             Right = 1,
-            Forward = 2,
-            Down = 3,
+            Front = 2,
+            Bottom = 3,
             Left = 4,
             Back = 5
         };
@@ -99,12 +99,12 @@ namespace SvenFrankson.Game.SphereCraft {
             float[] angles = new float[6];
             angles[(int)Planet.Side.Right] = Vector3.Angle(localPos, Vector3.right);
             angles[(int)Planet.Side.Left] = Vector3.Angle(localPos, -Vector3.right);
-            angles[(int)Planet.Side.Forward] = Vector3.Angle(localPos, Vector3.forward);
+            angles[(int)Planet.Side.Front] = Vector3.Angle(localPos, Vector3.forward);
             angles[(int)Planet.Side.Back] = Vector3.Angle(localPos, -Vector3.forward);
-            angles[(int)Planet.Side.Up] = Vector3.Angle(localPos, Vector3.up);
-            angles[(int)Planet.Side.Down] = Vector3.Angle(localPos, -Vector3.up);
+            angles[(int)Planet.Side.Top] = Vector3.Angle(localPos, Vector3.up);
+            angles[(int)Planet.Side.Bottom] = Vector3.Angle(localPos, -Vector3.up);
 
-            Planet.Side smallest = Planet.Side.Up;
+            Planet.Side smallest = Planet.Side.Top;
             foreach (Planet.Side side in Enum.GetValues(typeof(Planet.Side)))
             {
                 if (angles[(int)side] < angles[(int)smallest])

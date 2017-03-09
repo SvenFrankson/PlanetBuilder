@@ -10,7 +10,7 @@ namespace SvenFrankson.Game.SphereCraft {
 
 		static public int ChunckSize {
 			get {
-				return 32;
+				return 16;
 			}
 		}
 
@@ -100,10 +100,10 @@ namespace SvenFrankson.Game.SphereCraft {
 
             switch (side)
             {
-                case Planet.Side.Up:
+                case Planet.Side.Top:
                     sideLocalRotation = Quaternion.Euler(0f, 0f, 90f);
                     break;
-                case Planet.Side.Down:
+                case Planet.Side.Bottom:
                     sideLocalRotation = Quaternion.Euler(0f, 0f, -90f);
                     break;
                 case Planet.Side.Right:
@@ -112,7 +112,7 @@ namespace SvenFrankson.Game.SphereCraft {
                 case Planet.Side.Left:
                     sideLocalRotation = Quaternion.Euler(0f, 180f, 0f);
                     break;
-                case Planet.Side.Forward:
+                case Planet.Side.Front:
                     sideLocalRotation = Quaternion.Euler(0f, -90f, 0f);
                     break;
                 case Planet.Side.Back:
@@ -188,6 +188,28 @@ namespace SvenFrankson.Game.SphereCraft {
             dataStream.Close();
             saveFile.Close();
 
+            return 1;
+        }
+
+        static public int SaveForBabylonJSVersion(string planet, Byte[][][] chunckDatas, int iPos, int jPos, int kPos, Planet.Side side)
+        {
+            string directoryPath = Application.dataPath + "/../PlanetDataBabylonJS/" + planet + "/" + side + "/" + iPos + "/" + jPos + "/" + kPos + "/";
+            Directory.CreateDirectory(directoryPath);
+            string saveFilePath = directoryPath + "data.txt";
+            FileStream saveFile = new FileStream(saveFilePath, FileMode.Create, FileAccess.Write);
+            StreamWriter dataStream = new StreamWriter(saveFile);
+            for (int i = 0; i < PlanetUtility.ChunckSize; i++)
+            {
+                for (int j = 0; j < PlanetUtility.ChunckSize; j++)
+                {
+                    for (int k = 0; k < PlanetUtility.ChunckSize; k++)
+                    {
+                        dataStream.Write(chunckDatas[i][j][k].ToString("X2"));
+                    }
+                }
+            }
+            dataStream.Close();
+            saveFile.Close();
             return 1;
         }
 

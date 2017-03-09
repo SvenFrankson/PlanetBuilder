@@ -16,6 +16,7 @@ namespace SvenFrankson.Tools {
         public int size = 0;
         public int chunckCount = 0;
         public bool overwrite = false;
+        public bool babylonJSVersion = false;
         public string output = "";
         private float[][] thresholds;
 
@@ -72,6 +73,7 @@ namespace SvenFrankson.Tools {
             EditorGUILayout.IntField("Size", this.size);
             EditorGUILayout.IntField("ChunckCount", this.chunckCount);
             this.overwrite = EditorGUILayout.Toggle("Overwrite", this.overwrite);
+            this.babylonJSVersion = EditorGUILayout.Toggle("BabylonJS Version", this.babylonJSVersion);
             EditorGUILayout.TextArea(this.output);
 
 			if (GUILayout.Button ("Compute Properties")) {
@@ -158,7 +160,14 @@ namespace SvenFrankson.Tools {
                             tGet += (t3 - t2);
 
                             float t4 = Time.realtimeSinceStartup;
-                            PlanetUtility.Save(this.planetName, chunckData, i, j, k, side);
+                            if (this.babylonJSVersion)
+                            {
+                                PlanetUtility.SaveForBabylonJSVersion(this.planetName, chunckData, i, j, k, side);
+                            }
+                            else
+                            {
+                                PlanetUtility.Save(this.planetName, chunckData, i, j, k, side);
+                            }
                             float t5 = Time.realtimeSinceStartup;
                             tSave += (t5 - t4);
 
@@ -188,7 +197,7 @@ namespace SvenFrankson.Tools {
             Map map = new Map();
 
             float t0 = Time.realtimeSinceStartup;
-            if (side == Planet.Side.Up)
+            if (side == Planet.Side.Top)
             {
                 y = size;
                 for (int i = 0; i < PlanetUtility.ChunckSize; i++)
@@ -202,7 +211,7 @@ namespace SvenFrankson.Tools {
                     }
                 }
             }
-            else if (side == Planet.Side.Down)
+            else if (side == Planet.Side.Bottom)
             {
                 y = 0;
                 for (int i = 0; i < PlanetUtility.ChunckSize; i++)
@@ -244,7 +253,7 @@ namespace SvenFrankson.Tools {
                     }
                 }
             }
-            else if (side == Planet.Side.Forward)
+            else if (side == Planet.Side.Front)
             {
                 z = size;
                 for (int i = 0; i < PlanetUtility.ChunckSize; i++)
