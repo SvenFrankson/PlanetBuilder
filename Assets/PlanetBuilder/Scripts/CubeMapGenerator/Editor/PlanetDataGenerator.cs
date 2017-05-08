@@ -8,6 +8,16 @@ using System;
 
 namespace SvenFrankson.Tools {
 
+	public enum BlockData {
+		Grass = 129,
+		Dirt = 130,
+		Sand = 131,
+		Rock = 132,
+		Trunc = 133,
+		Leaves = 134,
+		Snow = 135
+	}
+
 	public class PlanetDataGenerator : EditorWindow {
 
         public string planetName = "Test";
@@ -57,7 +67,7 @@ namespace SvenFrankson.Tools {
             this.thresholds[2][1] = 0.6f;
             // Sand
             this.thresholds[3][0] = 0f;
-            this.thresholds[3][1] = 0.4f;
+            this.thresholds[3][1] = 0.2f;
         }
 
         [MenuItem("Window/PlanetDataGenerator")]
@@ -304,37 +314,37 @@ namespace SvenFrankson.Tools {
                         int h = kPos * PlanetUtility.ChunckSize + k;
                         if (h == 0)
                         {
-                            chunckData[i][j][k] = 131;
+							chunckData[i][j][k] = (byte) BlockData.Rock;
                         }
                         else if (h <= map.heightMap[i][j])
                         {
                             int[] localThresholds = GetLocalThresholds(maxHeight, map.latMap[i][j]);
                             if (h >= localThresholds[0])
                             {
-                                chunckData[i][j][k] = 132;
+								chunckData[i][j][k] = (byte) BlockData.Snow;
                             }
                             else if (h >= localThresholds[1])
                             {
-                                chunckData[i][j][k] = 130;
+								chunckData[i][j][k] = (byte) BlockData.Rock;
                             }
                             else if (h >= localThresholds[2])
                             {
                                 if (h == map.heightMap[i][j])
                                 {
-                                    chunckData[i][j][k] = 128;
+									chunckData[i][j][k] = (byte) BlockData.Grass;
                                 }
                                 else
                                 {
-                                    chunckData[i][j][k] = 129;
+									chunckData[i][j][k] = (byte) BlockData.Dirt;
                                 }
                             }
                             else if (h >= localThresholds[3])
                             {
-                                chunckData[i][j][k] = 133;
+								chunckData[i][j][k] = (byte) BlockData.Sand;
                             }
                             else
                             {
-                                chunckData[i][j][k] = 131;
+								chunckData[i][j][k] = (byte) BlockData.Rock;
                             }
                         }
                         else
@@ -355,7 +365,7 @@ namespace SvenFrankson.Tools {
             int[] localThresholds = new int[4];
             for (int i = 0; i < 4; i++)
             {
-                localThresholds[i] = Mathf.FloorToInt((thresholds[i][0] * lat + thresholds[i][1]) * maxHeight + maxHeight / 2) + UnityEngine.Random.Range(-1, 1);
+                localThresholds[i] = Mathf.FloorToInt((thresholds[i][0] * lat + thresholds[i][1]) * maxHeight + maxHeight / 2) + UnityEngine.Random.Range(-2, 0);
             }
             return localThresholds;
         }

@@ -247,5 +247,36 @@ namespace SvenFrankson.Game.SphereCraft {
             }
             return planetList;
         }
+
+		static public int KGlobalToDegree(int k) {
+			return PlanetUtility.KPosToDegree(k / PlanetUtility.ChunckSize);
+		}
+
+		static public int KPosToDegree(int kPos) {
+			if (kPos < 1) {
+				return 4;
+			}
+			else if (kPos < 2) {
+				return 5;
+			}
+			else if (kPos < 4) {
+				return 6;
+			}
+			else if (kPos < 7) {
+				return 7;
+			}
+			else if (kPos < 13) {
+				return 8;
+			}
+			return 9;
+		}
+
+		static public int DegreeToSize(int degree) {
+			return Mathf.FloorToInt(Mathf.Pow (2, degree));
+		}
+
+		static public int DegreeToChuncksCount(int degree) {
+			return PlanetUtility.DegreeToSize (degree) / PlanetUtility.ChunckSize;
+		}
 	}
 }

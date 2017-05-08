@@ -55,19 +55,19 @@ public class PlayerTest : MonoBehaviour {
 	void Update () {
         if (Input.GetKey(KeyCode.Z))
         {
-            this.C_Rigidbody.MovePosition(this.transform.position + 5f * Time.deltaTime * this.transform.forward);
+            this.C_Rigidbody.MovePosition(this.transform.position + 50f * Time.deltaTime * this.transform.forward);
         }
         if (Input.GetKey(KeyCode.S))
         {
-            this.C_Rigidbody.MovePosition(this.transform.position - 5f * Time.deltaTime * this.transform.forward);
+			this.C_Rigidbody.MovePosition(this.transform.position - 50f * Time.deltaTime * this.transform.forward);
         }
         if (Input.GetKey(KeyCode.Q))
         {
-            this.C_Rigidbody.MovePosition(this.transform.position - 5f * Time.deltaTime * this.transform.right);
+			this.C_Rigidbody.MovePosition(this.transform.position - 50f * Time.deltaTime * this.transform.right);
         }
         if (Input.GetKey(KeyCode.D))
         {
-            this.C_Rigidbody.MovePosition(this.transform.position + 5f * Time.deltaTime * this.transform.right);
+			this.C_Rigidbody.MovePosition(this.transform.position + 50f * Time.deltaTime * this.transform.right);
         }
         
         if (Input.GetMouseButton(1))
@@ -79,8 +79,8 @@ public class PlayerTest : MonoBehaviour {
         {
             if (!MouseOverGUI())
             {
-                this.PutDataAtMouse();
-                //this.PutTreeAtMouse();
+                //this.PutDataAtMouse();
+                this.PutTreeAtMouse();
             }
         }
         BrushPaintingUpdate();
@@ -93,7 +93,7 @@ public class PlayerTest : MonoBehaviour {
         {
             this.C_Rigidbody.AddForce(5f * this.transform.up, ForceMode.Impulse);
         }
-        C_Rigidbody.AddForce(-(this.transform.position - this.target.transform.position).normalized * 9f);
+        C_Rigidbody.AddForce(-(this.transform.position - this.target.transform.position).normalized * 1f);
     }
 
     public void OnGUI()
@@ -199,7 +199,7 @@ public class PlayerTest : MonoBehaviour {
     public void CreateTree(PlanetSide planetSide, int iPos, int jPos, int kPos)
     {
         List<PlanetChunck> planetChuncks = new List<PlanetChunck>();
-        int h = Random.Range(4, 12);
+        int h = Random.Range(4, 8);
 
         Debug.Log("H = " + h);
         int bpi = Random.Range(1, h / 2);
@@ -233,7 +233,7 @@ public class PlayerTest : MonoBehaviour {
 
         for (int k = 0; k <= h; k++)
         {
-            PlanetChunck planetChunck = target.SetDataAtIJKPos(planetSide, iPos, jPos, kPos + k, 135, false, false, false);
+			PlanetChunck planetChunck = target.SetDataAtIJKPos(planetSide, iPos, jPos, kPos + k, 133, false, false, false);
             if (planetChunck != null)
             {
                 if (!planetChuncks.Contains(planetChunck))
@@ -244,7 +244,7 @@ public class PlayerTest : MonoBehaviour {
         }
         for (int k = 0; k <= bup; k++)
         {
-            PlanetChunck planetChunck = target.SetDataAtIJKPos(planetSide, iPos, jPos, kPos + h + k, 135, false, false, false);
+			PlanetChunck planetChunck = target.SetDataAtIJKPos(planetSide, iPos, jPos, kPos + h + k, 133, false, false, false);
             if (planetChunck != null)
             {
                 if (!planetChuncks.Contains(planetChunck))
@@ -254,7 +254,7 @@ public class PlayerTest : MonoBehaviour {
             }
             for (int a = 0; a < allSides.Length; a++)
             {
-                planetChunck = target.SetDataAtIJKPos(planetSide, iPos + allSides[a][0], jPos + allSides[a][1], kPos + h + k + allSides[a][2], 1, true, false, false);
+                planetChunck = target.SetDataAtIJKPos(planetSide, iPos + allSides[a][0], jPos + allSides[a][1], kPos + h + k + allSides[a][2], 134, true, false, false);
                 if (planetChunck != null)
                 {
                     if (!planetChuncks.Contains(planetChunck))
@@ -266,7 +266,7 @@ public class PlayerTest : MonoBehaviour {
         }
         for (int i = -bmi; (i <= bpi); i++)
         {
-            PlanetChunck planetChunck = target.SetDataAtIJKPos(planetSide, iPos + i, jPos, kPos + h, 135, false, false, false);
+			PlanetChunck planetChunck = target.SetDataAtIJKPos(planetSide, iPos + i, jPos, kPos + h, 133, false, false, false);
             if (planetChunck != null)
             {
                 if (!planetChuncks.Contains(planetChunck))
@@ -276,7 +276,7 @@ public class PlayerTest : MonoBehaviour {
             }
             for (int a = 0; a < allSides.Length; a++)
             {
-                planetChunck = target.SetDataAtIJKPos(planetSide, iPos + i + allSides[a][0], jPos + allSides[a][1], kPos + h + allSides[a][2], 1, true, false, false);
+                planetChunck = target.SetDataAtIJKPos(planetSide, iPos + i + allSides[a][0], jPos + allSides[a][1], kPos + h + allSides[a][2], 134, true, false, false);
                 if (planetChunck != null)
                 {
                     if (!planetChuncks.Contains(planetChunck))
@@ -288,7 +288,7 @@ public class PlayerTest : MonoBehaviour {
         }
         for (int j = -bmj; (j <= bpj); j++)
         {
-            PlanetChunck planetChunck = target.SetDataAtIJKPos(planetSide, iPos, jPos + j, kPos + h, 135, false, false, false); ;
+			PlanetChunck planetChunck = target.SetDataAtIJKPos(planetSide, iPos, jPos + j, kPos + h, 133, false, false, false); ;
             if (planetChunck != null)
             {
                 if (!planetChuncks.Contains(planetChunck))
@@ -298,7 +298,7 @@ public class PlayerTest : MonoBehaviour {
             }
             for (int a = 0; a < allSides.Length; a++)
             {
-                planetChunck = target.SetDataAtIJKPos(planetSide, iPos + allSides[a][0], jPos + j + allSides[a][1], kPos + h + allSides[a][2], 1, true, false, false);
+                planetChunck = target.SetDataAtIJKPos(planetSide, iPos + allSides[a][0], jPos + j + allSides[a][1], kPos + h + allSides[a][2], 134, true, false, false);
                 if (planetChunck != null)
                 {
                     if (!planetChuncks.Contains(planetChunck))
@@ -312,7 +312,8 @@ public class PlayerTest : MonoBehaviour {
         foreach (PlanetChunck p in planetChuncks)
         {
             p.SetMesh();
-            PlanetUtility.Save(p.PlanetName, p.data, p.iPos, p.jPos, p.kPos, p.planetSide.side);
+			PlanetUtility.Save(p.PlanetName, p.data, p.iPos, p.jPos, p.kPos, p.planetSide.side);
+			PlanetUtility.SaveForBabylonJSVersion(p.PlanetName, p.data, p.iPos, p.jPos, p.kPos, p.planetSide.side);
         }
     }
     #endregion
