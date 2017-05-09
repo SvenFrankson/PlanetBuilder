@@ -275,19 +275,42 @@ namespace SvenFrankson.Tools {
 						int jGlobal = jPos * PlanetUtility.ChunckSize + j;
 						int kGlobal = kPos * PlanetUtility.ChunckSize + k;
 						int heightThreshold = Mathf.FloorToInt(map.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * (maxHeight / 2) + (maxHeight / 2));
-						int holeHeight = Mathf.FloorToInt (holesMap.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * 64 - 32);
+						int holeHeight = Mathf.FloorToInt (holesMap.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * 32);
 						holeHeight = Math.Max (holeHeight, 0);
-						int holeAltitude = Mathf.FloorToInt(holesHeightMap.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * (maxHeight / 2) + (maxHeight / 2));
+						int holeAltitude = Mathf.FloorToInt(holesHeightMap.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * (maxHeight / 2) + (maxHeight / 2) - 16);
 
-						if (kGlobal < heightThreshold) {
-							if (kGlobal < holeAltitude || kGlobal > holeAltitude + holeHeight - 1) {
-								chunckData [i] [j] [k] = (byte) BlockData.Dirt;
-							} else {
-								chunckData [i] [j] [k] = (byte) BlockData.Empty;
+						byte data = (byte) BlockData.Empty;
+						if (holeHeight == 0) {
+							if (kGlobal < heightThreshold) {
+								if (heightThreshold - kGlobal <= 1) {
+									data = (byte) BlockData.Grass;
+								} else if (heightThreshold - kGlobal <= 3) {
+									data = (byte) BlockData.Dirt;
+								} else {
+									data = (byte) BlockData.Rock;
+								}
 							}
-						} else {
-							chunckData [i] [j] [k] = (byte) BlockData.Empty;
+						} 
+						else {
+							if (kGlobal < holeAltitude) {
+								if (holeAltitude - kGlobal <= 1) {
+									data = (byte) BlockData.Grass;
+								} else if (holeAltitude - kGlobal <= 3) {
+									data = (byte) BlockData.Dirt;
+								} else {
+									data = (byte) BlockData.Rock;
+								}
+							} else if (kGlobal > holeAltitude + holeHeight && kGlobal < heightThreshold) {
+								if (heightThreshold - kGlobal <= 1) {
+									data = (byte) BlockData.Grass;
+								} else if (heightThreshold - kGlobal <= 3) {
+									data = (byte) BlockData.Dirt;
+								} else {
+									data = (byte) BlockData.Rock;
+								}
+							}
 						}
+						chunckData [i] [j] [k] = data;
                     }
                 }
             }
