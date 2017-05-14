@@ -10,7 +10,7 @@ namespace SvenFrankson.Game.SphereCraft {
 
 		static public int ChunckSize {
 			get {
-				return 16;
+				return 32;
 			}
 		}
 
@@ -253,6 +253,10 @@ namespace SvenFrankson.Game.SphereCraft {
 		}
 
 		static public int KPosToDegree(int kPos) {
+			return KPosToDegree32 (kPos);
+		}
+
+		static public int KPosToDegree16(int kPos) {
 			if (kPos < 1) {
 				return 4;
 			}
@@ -266,6 +270,22 @@ namespace SvenFrankson.Game.SphereCraft {
 				return 7;
 			}
 			else if (kPos < 13) {
+				return 8;
+			}
+			return 9;
+		}
+
+		static public int KPosToDegree32(int kPos) {
+			if (kPos < 1) {
+				return 5;
+			}
+			else if (kPos < 2) {
+				return 6;
+			}
+			else if (kPos < 4) {
+				return 7;
+			}
+			else if (kPos < 7) {
 				return 8;
 			}
 			return 9;

@@ -29,7 +29,7 @@ namespace SvenFrankson.Tools {
 		private int lowestPoint;
 		private int highestPoint;
 		private int lowToHighPoint;
-		private int degree;
+		private int degreeAtKPosMax;
         public bool overwrite = false;
         public bool babylonJSVersion = false;
         public string output = "";
@@ -97,7 +97,7 @@ namespace SvenFrankson.Tools {
 
         private void Check()
         {
-			this.degree = PlanetUtility.KPosToDegree (this.kPosMax);
+			this.degreeAtKPosMax = PlanetUtility.KPosToDegree (this.kPosMax);
             this.output = "";
             string directoryPath = Application.dataPath + "/../PlanetData/" + this.planetName + "/";
             if (Directory.Exists(directoryPath))
@@ -134,8 +134,11 @@ namespace SvenFrankson.Tools {
 			RandomSeed holes0HeightMapSeed = new RandomSeed(this.planetName + "holes0HeightMap");
 			RandomSeed holes1MapSeed = new RandomSeed(this.planetName + "holes1Map");
 			RandomSeed holes1HeightMapSeed = new RandomSeed(this.planetName + "holes1HeightMap");
+			RandomSeed holes2MapSeed = new RandomSeed(this.planetName + "holes2Map");
+			RandomSeed holes2HeightMapSeed = new RandomSeed(this.planetName + "holes2HeightMap");
             int chunckSaved = 0;
             int chunckTotal = 4242;
+			this.degreeAtKPosMax = PlanetUtility.KPosToDegree (this.kPosMax);
 			this.maxHeight = PlanetUtility.ChunckSize * (this.kPosMax + 1);
 			this.lowestPoint = Mathf.FloorToInt (this.lowestPointPercent / 100f * this.maxHeight);
 			this.highestPoint = Mathf.FloorToInt (this.highestPointPercent / 100f * this.maxHeight);
@@ -148,13 +151,15 @@ namespace SvenFrankson.Tools {
 				LargeMap holes0HeightMap = GetLargeMapFor(holes0HeightMapSeed, side);
 				LargeMap holes1Map = GetLargeMapFor(holes1MapSeed, side);
 				LargeMap holes1HeightMap = GetLargeMapFor(holes1HeightMapSeed, side);
+				LargeMap holes2Map = GetLargeMapFor(holes2MapSeed, side);
+				LargeMap holes2HeightMap = GetLargeMapFor(holes2HeightMapSeed, side);
 
 				for (int kPos = 0; kPos <= this.kPosMax; kPos++) {
 					int chuncksCount = PlanetUtility.DegreeToChuncksCount (PlanetUtility.KPosToDegree (kPos));
 					for (int iPos = 0; iPos < chuncksCount; iPos++) {
 						for (int jPos = 0; jPos < chuncksCount; jPos++) {
 							float t2 = Time.realtimeSinceStartup;
-							Byte[][][] chunckData = GetByteFor (iPos, jPos, kPos, side, map, holes0Map, holes0HeightMap, holes1Map, holes1HeightMap);
+							Byte[][][] chunckData = GetByteFor (iPos, jPos, kPos, side, map, holes0Map, holes0HeightMap, holes1Map, holes1HeightMap, holes2Map, holes2HeightMap);
 							float t3 = Time.realtimeSinceStartup;
 							tGet += (t3 - t2);
 
@@ -314,7 +319,19 @@ namespace SvenFrankson.Tools {
 			return BlockData.Snow;
 		}
 			
-		private Byte[][][] GetByteFor(int iPos, int jPos, int kPos, Planet.Side side, LargeMap map, LargeMap holes0Map, LargeMap holes0DepthMap, LargeMap holes1Map, LargeMap holes1DepthMap)
+		private Byte[][][] GetByteFor(
+			int iPos,
+			int jPos,
+			int kPos,
+			Planet.Side side,
+			LargeMap map, LargeMap
+			holes0Map,
+			LargeMap holes0DepthMap,
+			LargeMap holes1Map,
+			LargeMap holes1DepthMap,
+			LargeMap holes2Map,
+			LargeMap holes2DepthMap
+		)
 		{
             Byte[][][] chunckData = new Byte[PlanetUtility.ChunckSize][][];
 			int size = PlanetUtility.DegreeToSize (PlanetUtility.KPosToDegree (kPos));
@@ -340,6 +357,8 @@ namespace SvenFrankson.Tools {
 						int h1Alt = Mathf.FloorToInt(holes1Map.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * lowToHighPoint + lowestPoint - lowToHighPoint);
 						int h1Depth = Mathf.FloorToInt(holes1DepthMap.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * lowToHighPoint / 2);
 						//h1Depth = 0;
+						int h2Alt = Mathf.FloorToInt(holes2Map.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * lowToHighPoint + lowestPoint - 3 * lowToHighPoint / 2);
+						int h2Depth = Mathf.FloorToInt(holes2DepthMap.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * lowToHighPoint / 2);
 
 						BlockData data = BlockData.Empty;
 
@@ -349,24 +368,28 @@ namespace SvenFrankson.Tools {
 							if ((kGlobal <= h0Alt) || (kGlobal >= h0Alt + h0Depth)) {
 								// if k is not in generated hole1
 								if ((kGlobal <= h1Alt) || (kGlobal >= h1Alt + h1Depth)) {
+									// if k is not in generated hole2
+									if ((kGlobal <= h2Alt) || (kGlobal >= h2Alt + h2Depth)) {
 									// then data is not empty, set rock as default
-									data = BlockData.Rock;
-									// compute depth of soil block (blocks that are not rocks)
-									int soilDepth = Mathf.FloorToInt (Mathf.Abs (Mathf.Cos (i * 53 + j * 41 + k * 29) * 5) + 1);
-									// if k is close to the surface of the map or of any hole
-									if (
-										((kGlobal <= heightThreshold) && (heightThreshold - kGlobal < soilDepth)) ||
-										((kGlobal <= h0Alt) && (h0Alt - kGlobal < soilDepth)) ||
-										((kGlobal <= h1Alt) && (h1Alt - kGlobal < soilDepth))) {
-										// then data is soil block
-										data = GetSoilBlock (map.latMap [iGlobal * sizeRatio] [jGlobal * sizeRatio], iGlobal, jGlobal, kGlobal);
-										// if data is Dirt
-										if (data == BlockData.Dirt) {
-											// and if data is strictly at surface of any hole
-											if (
-												(kGlobal == heightThreshold) ||
-												(kGlobal == h0Alt)) {
-												data = BlockData.Grass;
+										data = BlockData.Rock;
+										// compute depth of soil block (blocks that are not rocks)
+										int soilDepth = Mathf.FloorToInt (Mathf.Abs (Mathf.Cos (i * 53 + j * 41 + k * 29) * 5) + 1);
+										// if k is close to the surface of the map or of any hole
+										if (
+											((kGlobal <= heightThreshold) && (heightThreshold - kGlobal < soilDepth)) ||
+											((kGlobal <= h0Alt) && (h0Alt - kGlobal < soilDepth)) ||
+											((kGlobal <= h1Alt) && (h1Alt - kGlobal < soilDepth)) ||
+											((kGlobal <= h2Alt) && (h2Alt - kGlobal < soilDepth))) {
+											// then data is soil block
+											data = GetSoilBlock (map.latMap [iGlobal * sizeRatio] [jGlobal * sizeRatio], iGlobal, jGlobal, kGlobal);
+											// if data is Dirt
+											if (data == BlockData.Dirt) {
+												// and if data is strictly at surface of any hole
+												if (
+													(kGlobal == heightThreshold) ||
+													(kGlobal == h0Alt)) {
+													data = BlockData.Grass;
+												}
 											}
 										}
 									}
@@ -416,9 +439,9 @@ namespace SvenFrankson.Tools {
         {
             float value = 0f;
 
-            for (int d = 2; d < degree; d++)
+			for (int d = 2; d < degreeAtKPosMax; d++)
             {
-                int range = Mathf.FloorToInt(Mathf.Pow(2f, degree - d));
+				int range = Mathf.FloorToInt(Mathf.Pow(2f, degreeAtKPosMax - d));
                 int x0 = (x / range) * range;
                 int y0 = (y / range) * range;
                 int z0 = (z / range) * range;
