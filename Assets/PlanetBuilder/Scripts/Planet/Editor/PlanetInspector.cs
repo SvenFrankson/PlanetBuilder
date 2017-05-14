@@ -138,7 +138,7 @@ namespace SvenFrankson.Game.SphereCraft {
             {
                 ChunckDataToInstantiate chunck = chuncksToInstantiate[0];
                 chuncksToInstantiate.RemoveAt(0);
-                chunck.side.chuncks[chunck.iPos][chunck.jPos][chunck.kPos].SetMesh(false);
+                chunck.side.chuncks[chunck.kPos][chunck.iPos][chunck.jPos].SetMesh(false);
             }
         }
 	}

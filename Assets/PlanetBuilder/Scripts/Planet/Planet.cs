@@ -369,12 +369,12 @@ namespace SvenFrankson.Game.SphereCraft {
             FileStream dataFile = new FileStream(dataFilePath, FileMode.Open, FileAccess.Read);
             StreamReader dataStream = new StreamReader(dataFile);
 
-            dataStream.ReadLine();
-            string l = dataStream.ReadLine();
-            Debug.Log(l);
-            this.degree = int.Parse(l.Split('=')[1]);
-            l = dataStream.ReadLine();
-            this.waterLevel = int.Parse(l.Split('=')[1]);
+            //dataStream.ReadLine();
+            //string l = dataStream.ReadLine();
+            //Debug.Log(l);
+            //this.degree = int.Parse(l.Split('=')[1]);
+            //l = dataStream.ReadLine();
+            //this.waterLevel = int.Parse(l.Split('=')[1]);
 
             dataStream.Close();
             dataFile.Close();

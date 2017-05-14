@@ -95,8 +95,7 @@ namespace SvenFrankson.Game.SphereCraft {
 
         public void BuildMeshAlt (out Mesh mesh, out Mesh meshCollider)
         {
-            int size = this.planetSide.Size;
-            int rMin = this.planetSide.RMin;
+			int size = PlanetUtility.DegreeToSize(PlanetUtility.KPosToDegree (this.kPos));
             float rWater = WaterLevel - 0.2f;
 
             mesh = new Mesh();
@@ -120,13 +119,13 @@ namespace SvenFrankson.Game.SphereCraft {
                             if (this.data[i][j][k] == 0)
                             {
                                 int a = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (rWater + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (rWater));
                                 int b = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (rWater + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (rWater));
                                 int c = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (rWater + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (rWater));
                                 int d = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (rWater + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (rWater));
 
                                 trianglesWater.Add(a);
                                 trianglesWater.Add(b);
@@ -145,13 +144,13 @@ namespace SvenFrankson.Game.SphereCraft {
                             if ((i - 1 < 0) || (this.data[i - 1][j][k] < 128 && this.data[i - 1][j][k] != block))
                             {
                                 int a = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + this.kPos * PlanetUtility.ChunckSize));
                                 int b = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize));
                                 int c = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize));
                                 int d = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + this.kPos * PlanetUtility.ChunckSize));
 
                                 trianglesSide.Add(a);
                                 trianglesSide.Add(b);
@@ -166,13 +165,13 @@ namespace SvenFrankson.Game.SphereCraft {
                             if ((j - 1 < 0) || (this.data[i][j - 1][k] < 128 && this.data[i][j - 1][k] != block))
                             {
                                 int a = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + this.kPos * PlanetUtility.ChunckSize));
                                 int b = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize));
                                 int c = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize));
                                 int d = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize));
 
                                 trianglesSide.Add(a);
                                 trianglesSide.Add(b);
@@ -187,13 +186,13 @@ namespace SvenFrankson.Game.SphereCraft {
                             if ((k - 1 < 0) || (this.data[i][j][k - 1] < 128 && this.data[i][j][k - 1] != block))
                             {
                                 int a = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + this.kPos * PlanetUtility.ChunckSize));
                                 int b = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize));
                                 int c = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize));
                                 int d = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + this.kPos * PlanetUtility.ChunckSize));
 
                                 trianglesTop.Add(a);
                                 trianglesTop.Add(b);
@@ -208,13 +207,13 @@ namespace SvenFrankson.Game.SphereCraft {
                             if ((i + 1 >= PlanetUtility.ChunckSize) || (this.data[i + 1][j][k] < 128 && this.data[i + 1][j][k] != block))
                             {
                                 int a = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize));
                                 int b = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize));
                                 int c = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize));
                                 int d = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize));
 
                                 trianglesSide.Add(a);
                                 trianglesSide.Add(b);
@@ -229,13 +228,13 @@ namespace SvenFrankson.Game.SphereCraft {
                             if ((j + 1 >= PlanetUtility.ChunckSize) || (this.data[i][j + 1][k] < 128 && this.data[i][j + 1][k] != block))
                             {
                                 int a = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + this.kPos * PlanetUtility.ChunckSize));
                                 int b = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize));
                                 int c = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize));
                                 int d = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + this.kPos * PlanetUtility.ChunckSize));
 
                                 trianglesSide.Add(a);
                                 trianglesSide.Add(b);
@@ -250,13 +249,13 @@ namespace SvenFrankson.Game.SphereCraft {
                             if ((k + 1 >= PlanetUtility.ChunckSize) || (this.data[i][j][k + 1] < 128 && this.data[i][j][k + 1] != block))
                             {
                                 int a = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize));
                                 int b = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z) * (k + 1 + this.kPos * PlanetUtility.ChunckSize));
                                 int c = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y + 1, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize));
                                 int d = vertices.Count;
-                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize + rMin));
+                                vertices.Add(PlanetUtility.EvaluateVertex(size, y, z + 1) * (k + 1 + this.kPos * PlanetUtility.ChunckSize));
 
                                 trianglesTop.Add(a);
                                 trianglesTop.Add(b);

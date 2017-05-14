@@ -58,28 +58,28 @@ namespace SvenFrankson.Game.SphereCraft {
         public void Initialize(Planet planet)
         {
             this.planet = planet;
-			this.nbChunks = ((int) Mathf.Pow (2, this.Degree)) / PlanetUtility.ChunckSize;
 
-			this.chuncks = new PlanetChunck[this.nbChunks][][];
-            for (int iPos = 0; iPos < this.nbChunks; iPos++)
-            {
-                this.chuncks[iPos] = new PlanetChunck[this.nbChunks][];
-                for (int jPos = 0; jPos < this.nbChunks; jPos++)
-                {
-                    this.chuncks[iPos][jPos] = new PlanetChunck[this.nbChunks / 2];
-                    for (int kPos = 0; kPos < this.nbChunks / 2; kPos++)
-                    {
-                        Transform planetChunkChild = this.transform.Find(PlanetUtility.ChunckName(iPos, jPos, kPos));
-                        if (planetChunkChild != null)
-                        {
-                            this.chuncks[iPos][jPos][kPos] = planetChunkChild.GetComponent<PlanetChunck>();
-                        }
-                        if (this.chuncks[iPos][jPos][kPos] == null)
-                        {
-                            this.chuncks[iPos][jPos][kPos] = PlanetUtility.InstantiatePlanetChunck(iPos, jPos, kPos, this);
-                        }
-                        this.chuncks[iPos][jPos][kPos].Initialize();
-                    }
+			this.chuncks = new PlanetChunck[7][][];
+			for (int kPos = 0; kPos <= 6; kPos++)
+			{
+				int chuncksCount = PlanetUtility.DegreeToChuncksCount (PlanetUtility.KPosToDegree (kPos));
+				this.chuncks [kPos] = new PlanetChunck[chuncksCount][];
+				for (int iPos = 0; iPos < chuncksCount; iPos++)
+				{
+					this.chuncks[kPos][iPos] = new PlanetChunck[chuncksCount];
+					for (int jPos = 0; jPos < chuncksCount; jPos++)
+					{
+						Transform planetChunkChild = this.transform.Find(PlanetUtility.ChunckName(iPos, jPos, kPos));
+						if (planetChunkChild != null)
+						{
+							this.chuncks[kPos][iPos][jPos] = planetChunkChild.GetComponent<PlanetChunck>();
+						}
+						if (this.chuncks[kPos][iPos][jPos] == null)
+						{
+							this.chuncks[kPos][iPos][jPos] = PlanetUtility.InstantiatePlanetChunck(iPos, jPos, kPos, this);
+						}
+						this.chuncks[kPos][iPos][jPos].Initialize();
+					}
 				}
 			}
 		}

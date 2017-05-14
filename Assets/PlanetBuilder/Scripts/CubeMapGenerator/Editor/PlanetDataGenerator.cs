@@ -23,22 +23,35 @@ namespace SvenFrankson.Tools {
 
         public string planetName = "Test";
 		public int kPosMax = 6;
+		public int lowestPointPercent = 70;
+		public int highestPointPercent = 80;
+		private int maxHeight;
+		private int lowestPoint;
+		private int highestPoint;
+		private int lowToHighPoint;
 		private int degree;
         public bool overwrite = false;
         public bool babylonJSVersion = false;
         public string output = "";
         private float[][] thresholds;
+		private float SandDirtA = -0.013f;
+		private float SandDirtB = 0.8f;
+		private float DirtSnowA = -0.05f;
+		private float DirtSnowB = 4.5f;
 
 		private class LargeMap
 		{
 			public float[][] heightMap;
+			public float[][] latMap;
 
 			public LargeMap(int size)
 			{
 				this.heightMap = new float[size][];
+				this.latMap = new float[size][];
 				for (int i = 0; i < size; i++)
 				{
 					this.heightMap[i] = new float[size];
+					this.latMap[i] = new float[size];
 				}
 			}
 		}
@@ -52,6 +65,8 @@ namespace SvenFrankson.Tools {
             EditorGUILayout.LabelField("PlanetDataGenerator");
             this.planetName = EditorGUILayout.TextField("PlanetName", this.planetName);
 			this.kPosMax = EditorGUILayout.IntField("KPosMax", this.kPosMax);
+			this.lowestPointPercent = EditorGUILayout.IntField("LowestPoint (%)", this.lowestPointPercent);
+			this.highestPointPercent = EditorGUILayout.IntField("HighestPoint (%)", this.highestPointPercent);
             this.overwrite = EditorGUILayout.Toggle("Overwrite", this.overwrite);
             this.babylonJSVersion = EditorGUILayout.Toggle("BabylonJS Version", this.babylonJSVersion);
             EditorGUILayout.TextArea(this.output);
@@ -115,29 +130,39 @@ namespace SvenFrankson.Tools {
             tBuildHeightMap = 0f;
             tSetBytes = 0f;
 			RandomSeed mapSeed = new RandomSeed(this.planetName);
-			RandomSeed holesMapSeed = new RandomSeed(this.planetName + "holesMap");
-			RandomSeed holesHeightMapSeed = new RandomSeed(this.planetName + "holesHeightMap");
+			RandomSeed holes0MapSeed = new RandomSeed(this.planetName + "holes0Map");
+			RandomSeed holes0HeightMapSeed = new RandomSeed(this.planetName + "holes0HeightMap");
+			RandomSeed holes1MapSeed = new RandomSeed(this.planetName + "holes1Map");
+			RandomSeed holes1HeightMapSeed = new RandomSeed(this.planetName + "holes1HeightMap");
             int chunckSaved = 0;
             int chunckTotal = 4242;
+			this.maxHeight = PlanetUtility.ChunckSize * (this.kPosMax + 1);
+			this.lowestPoint = Mathf.FloorToInt (this.lowestPointPercent / 100f * this.maxHeight);
+			this.highestPoint = Mathf.FloorToInt (this.highestPointPercent / 100f * this.maxHeight);
+			this.lowToHighPoint = highestPoint - lowestPoint;
 
             foreach (Planet.Side side in Enum.GetValues(typeof(Planet.Side)))
 			{
-				LargeMap map = GetLargeMapFor(mapSeed, side);
-				LargeMap holesMap = GetLargeMapFor(holesMapSeed, side);
-				LargeMap holesHeightMap = GetLargeMapFor(holesHeightMapSeed, side);
+				LargeMap map = GetLargeMapFor(mapSeed, side, true);
+				LargeMap holes0Map = GetLargeMapFor(holes0MapSeed, side);
+				LargeMap holes0HeightMap = GetLargeMapFor(holes0HeightMapSeed, side);
+				LargeMap holes1Map = GetLargeMapFor(holes1MapSeed, side);
+				LargeMap holes1HeightMap = GetLargeMapFor(holes1HeightMapSeed, side);
 
-				for (int kPos = 0; kPos < this.kPosMax; kPos++) {
+				for (int kPos = 0; kPos <= this.kPosMax; kPos++) {
 					int chuncksCount = PlanetUtility.DegreeToChuncksCount (PlanetUtility.KPosToDegree (kPos));
 					for (int iPos = 0; iPos < chuncksCount; iPos++) {
 						for (int jPos = 0; jPos < chuncksCount; jPos++) {
 							float t2 = Time.realtimeSinceStartup;
-							Byte[][][] chunckData = GetByteFor (iPos, jPos, kPos, side, map, holesMap, holesHeightMap);
+							Byte[][][] chunckData = GetByteFor (iPos, jPos, kPos, side, map, holes0Map, holes0HeightMap, holes1Map, holes1HeightMap);
 							float t3 = Time.realtimeSinceStartup;
 							tGet += (t3 - t2);
 
 							float t4 = Time.realtimeSinceStartup;
 							if (this.babylonJSVersion) {
 								PlanetUtility.SaveForBabylonJSVersion (this.planetName, chunckData, iPos, jPos, kPos, side);
+							} else {
+								PlanetUtility.Save (this.planetName, chunckData, iPos, jPos, kPos, side);
 							}
 							float t5 = Time.realtimeSinceStartup;
 							tSave += (t5 - t4);
@@ -158,12 +183,18 @@ namespace SvenFrankson.Tools {
 			this.output += "  Including time to save files : " + tSave + "s.\n";
 			this.output += "MinValue : " + this.minValue + ".\n";
 			this.output += "MaxValue : " + this.maxValue + ".\n";
+			this.output += "MedianValue : " + (this.valuesSum / this.valuesCount) + ".\n";
+			this.output += "KPosMax : " + this.kPosMax + ".\n";
+			this.output += "MaxHeight : " + this.maxHeight + ".\n";
+			this.output += "LowestPoint : " + this.lowestPoint + ".\n";
+			this.output += "LowToHighPoint : " + this.lowToHighPoint + ".\n";
+			this.output += "HighestPoint : " + this.highestPoint + ".\n";
         }
 
         private float tBuildHeightMap = 0f;
         private float tSetBytes = 0f;
 
-		private LargeMap GetLargeMapFor(RandomSeed seed, Planet.Side side)
+		private LargeMap GetLargeMapFor(RandomSeed seed, Planet.Side side, bool withLatMap = false)
 		{
 			int x, y, z;
 			int size = PlanetUtility.DegreeToSize (PlanetUtility.KPosToDegree (this.kPosMax));
@@ -180,6 +211,9 @@ namespace SvenFrankson.Tools {
 						x = size - j;
 						z = i;
 						map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						if (withLatMap) {
+							map.latMap[i][j] = Mathf.Abs(Vector3.Angle(PlanetUtility.EvaluateVertex(size, x, y, z), Vector3.up) - 90f);
+						}
 					}
 				}
 			}
@@ -193,6 +227,9 @@ namespace SvenFrankson.Tools {
 						x = j;
 						z = i;
 						map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						if (withLatMap) {
+							map.latMap[i][j] = Mathf.Abs(Vector3.Angle(PlanetUtility.EvaluateVertex(size, x, y, z), Vector3.up) - 90f);
+						}
 					}
 				}
 			}
@@ -206,6 +243,9 @@ namespace SvenFrankson.Tools {
 						y = j;
 						z = i;
 						map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						if (withLatMap) {
+							map.latMap[i][j] = Mathf.Abs(Vector3.Angle(PlanetUtility.EvaluateVertex(size, x, y, z), Vector3.up) - 90f);
+						}
 					}
 				}
 			}
@@ -219,6 +259,9 @@ namespace SvenFrankson.Tools {
 						y = j;
 						z = size - i;
 						map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						if (withLatMap) {
+							map.latMap[i][j] = Mathf.Abs(Vector3.Angle(PlanetUtility.EvaluateVertex(size, x, y, z), Vector3.up) - 90f);
+						}
 					}
 				}
 			}
@@ -232,6 +275,9 @@ namespace SvenFrankson.Tools {
 						y = j;
 						x = size - i;
 						map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						if (withLatMap) {
+							map.latMap[i][j] = Mathf.Abs(Vector3.Angle(PlanetUtility.EvaluateVertex(size, x, y, z), Vector3.up) - 90f);
+						}
 					}
 				}
 			}
@@ -245,6 +291,9 @@ namespace SvenFrankson.Tools {
 						y = j;
 						x = i;
 						map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						if (withLatMap) {
+							map.latMap[i][j] = Mathf.Abs(Vector3.Angle(PlanetUtility.EvaluateVertex(size, x, y, z), Vector3.up) - 90f);
+						}
 					}
 				}
 			}
@@ -253,10 +302,20 @@ namespace SvenFrankson.Tools {
 
 			return map;
 		}
+
+		private BlockData GetSoilBlock(float latitude, int i, int j, int k) {
+			float random = Mathf.Abs (Mathf.Cos (i * 13 + j * 93 + k * 41));
+			if (random < this.SandDirtA * latitude + this.SandDirtB) {
+				return BlockData.Sand;
+			}
+			if (random < this.DirtSnowA * latitude + this.DirtSnowB) {
+				return BlockData.Dirt;
+			}
+			return BlockData.Snow;
+		}
 			
-		private Byte[][][] GetByteFor(int iPos, int jPos, int kPos, Planet.Side side, LargeMap map, LargeMap holesMap, LargeMap holesHeightMap)
+		private Byte[][][] GetByteFor(int iPos, int jPos, int kPos, Planet.Side side, LargeMap map, LargeMap holes0Map, LargeMap holes0DepthMap, LargeMap holes1Map, LargeMap holes1DepthMap)
 		{
-			int maxHeight = PlanetUtility.ChunckSize * this.kPosMax;
             Byte[][][] chunckData = new Byte[PlanetUtility.ChunckSize][][];
 			int size = PlanetUtility.DegreeToSize (PlanetUtility.KPosToDegree (kPos));
 			int mapSize = map.heightMap.Length;
@@ -274,43 +333,67 @@ namespace SvenFrankson.Tools {
 						int iGlobal = iPos * PlanetUtility.ChunckSize + i;
 						int jGlobal = jPos * PlanetUtility.ChunckSize + j;
 						int kGlobal = kPos * PlanetUtility.ChunckSize + k;
-						int heightThreshold = Mathf.FloorToInt(map.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * (maxHeight / 2) + (maxHeight / 2));
-						int holeHeight = Mathf.FloorToInt (holesMap.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * 32);
-						holeHeight = Math.Max (holeHeight, 0);
-						int holeAltitude = Mathf.FloorToInt(holesHeightMap.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * (maxHeight / 2) + (maxHeight / 2) - 16);
+						int heightThreshold = Mathf.FloorToInt(map.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * lowToHighPoint + lowestPoint);
+						int h0Alt = Mathf.FloorToInt(holes0Map.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * lowToHighPoint + lowestPoint - lowToHighPoint / 2);
+						int h0Depth = Mathf.FloorToInt(holes0DepthMap.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * lowToHighPoint / 2);
+						//h0Depth = 0;
+						int h1Alt = Mathf.FloorToInt(holes1Map.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * lowToHighPoint + lowestPoint - lowToHighPoint);
+						int h1Depth = Mathf.FloorToInt(holes1DepthMap.heightMap[iGlobal * sizeRatio][jGlobal * sizeRatio] * lowToHighPoint / 2);
+						//h1Depth = 0;
 
-						byte data = (byte) BlockData.Empty;
-						if (holeHeight == 0) {
-							if (kGlobal < heightThreshold) {
-								if (heightThreshold - kGlobal <= 1) {
-									data = (byte) BlockData.Grass;
-								} else if (heightThreshold - kGlobal <= 3) {
-									data = (byte) BlockData.Dirt;
-								} else {
-									data = (byte) BlockData.Rock;
-								}
-							}
-						} 
-						else {
-							if (kGlobal < holeAltitude) {
-								if (holeAltitude - kGlobal <= 1) {
-									data = (byte) BlockData.Grass;
-								} else if (holeAltitude - kGlobal <= 3) {
-									data = (byte) BlockData.Dirt;
-								} else {
-									data = (byte) BlockData.Rock;
-								}
-							} else if (kGlobal > holeAltitude + holeHeight && kGlobal < heightThreshold) {
-								if (heightThreshold - kGlobal <= 1) {
-									data = (byte) BlockData.Grass;
-								} else if (heightThreshold - kGlobal <= 3) {
-									data = (byte) BlockData.Dirt;
-								} else {
-									data = (byte) BlockData.Rock;
+						BlockData data = BlockData.Empty;
+
+						// if k is under main heightMap threshold
+						if (kGlobal <= heightThreshold) {
+							// if k is not in generated hole0
+							if ((kGlobal <= h0Alt) || (kGlobal >= h0Alt + h0Depth)) {
+								// if k is not in generated hole1
+								if ((kGlobal <= h1Alt) || (kGlobal >= h1Alt + h1Depth)) {
+									// then data is not empty, set rock as default
+									data = BlockData.Rock;
+									// compute depth of soil block (blocks that are not rocks)
+									int soilDepth = Mathf.FloorToInt (Mathf.Abs (Mathf.Cos (i * 53 + j * 41 + k * 29) * 5) + 1);
+									// if k is close to the surface of the map or of any hole
+									if (
+										((kGlobal <= heightThreshold) && (heightThreshold - kGlobal < soilDepth)) ||
+										((kGlobal <= h0Alt) && (h0Alt - kGlobal < soilDepth)) ||
+										((kGlobal <= h1Alt) && (h1Alt - kGlobal < soilDepth))) {
+										// then data is soil block
+										data = GetSoilBlock (map.latMap [iGlobal * sizeRatio] [jGlobal * sizeRatio], iGlobal, jGlobal, kGlobal);
+										// if data is Dirt
+										if (data == BlockData.Dirt) {
+											// and if data is strictly at surface of any hole
+											if (
+												(kGlobal == heightThreshold) ||
+												(kGlobal == h0Alt)) {
+												data = BlockData.Grass;
+											}
+										}
+									}
 								}
 							}
 						}
-						chunckData [i] [j] [k] = data;
+
+						/*
+						if (kGlobal <= heightThreshold) {
+							// then data is not empty, set rock as default
+							data = BlockData.Rock;
+							// compute depth of soil block (blocks that are not rocks)
+							int soilDepth = Mathf.FloorToInt (Mathf.Abs (Mathf.Cos (i * 53 + j * 41 + k * 29) * 5) + 1);
+							if (heightThreshold - kGlobal < soilDepth) {
+								// then data is soil block
+								data = GetSoilBlock (map.latMap [iGlobal * sizeRatio] [jGlobal * sizeRatio], iGlobal, jGlobal, kGlobal);
+								// if data is Dirt
+								if (data == BlockData.Dirt) {
+									// and if data is strictly at surface of any hole
+									if (kGlobal == heightThreshold) {
+										data = BlockData.Grass;
+									}
+								}
+							}
+						}
+						*/
+						chunckData [i] [j] [k] = (byte) data;
                     }
                 }
             }
@@ -327,6 +410,8 @@ namespace SvenFrankson.Tools {
 
 		private float minValue = 0;
 		private float maxValue = 0;
+		private float valuesSum = 0;
+		private float valuesCount = 0;
         public float EvaluateTriCubic(int x, int y, int z, RandomSeed r)
         {
             float value = 0f;
@@ -381,6 +466,8 @@ namespace SvenFrankson.Tools {
 			value = (value + 1.5f) / 3f;
 			this.minValue = Mathf.Min (this.minValue, value);
 			this.maxValue = Mathf.Max (this.maxValue, value);
+			this.valuesCount++;
+			this.valuesSum += value;
 			return value;
         }
 	}

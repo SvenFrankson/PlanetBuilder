@@ -20,7 +20,7 @@ Material:
       second:
         m_Texture: {fileID: 2800000, guid: 62f55b82bed83cf44916e0b5a381795c, type: 3}
         m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0.799202, y: 0.63610935}
+        m_Offset: {x: 0.4183197, y: 0.5285656}
     - first:
         name: _Ramp
       second:
