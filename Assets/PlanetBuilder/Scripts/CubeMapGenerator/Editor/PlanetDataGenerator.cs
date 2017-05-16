@@ -39,13 +39,15 @@ namespace SvenFrankson.Tools {
 		private float DirtSnowA = -0.05f;
 		private float DirtSnowB = 4.5f;
 
-		private class LargeMap
+		public class LargeMap
 		{
+			public int size;
 			public float[][] heightMap;
 			public float[][] latMap;
 
 			public LargeMap(int size)
 			{
+				this.size = size;
 				this.heightMap = new float[size][];
 				this.latMap = new float[size][];
 				for (int i = 0; i < size; i++)
@@ -59,6 +61,53 @@ namespace SvenFrankson.Tools {
         [MenuItem("Window/PlanetDataGenerator")]
 		static void Open () {
             EditorWindow.GetWindow<PlanetDataGenerator>();
+		}
+
+		public static bool Exists(string name) {
+			return false;
+		}
+
+		public static void Save(string name, LargeMap map) {
+			string directoryPath = Application.dataPath + "/../PlanetData/largeMaps";
+			Directory.CreateDirectory(directoryPath);
+			string saveFilePath = directoryPath + "/" + name + ".png";
+			Debug.Log ("Save " + saveFilePath);
+			FileStream saveFile = new FileStream(saveFilePath, FileMode.Create, FileAccess.Write);
+			BinaryWriter dataStream = new BinaryWriter(saveFile);
+
+			Color[] colors = new Color[map.size * map.size];
+			for (int i = 0; i < map.size; i++) {
+				for (int j = 0; j < map.size; j++) {
+					colors [i * map.size + j] = new Color (map.heightMap [i] [j], map.heightMap [i] [j], map.heightMap [i] [j]);
+				}
+			}
+			Texture2D imgMap = new Texture2D(map.size, map.size);
+			imgMap.SetPixels (colors);
+
+			dataStream.Write(imgMap.EncodeToPNG ());
+
+			dataStream.Close();
+			saveFile.Close();
+		}
+
+		public static LargeMap Load(string name, int size) {
+			string path = Application.dataPath + "/../PlanetData/largeMaps/" + name + ".png";
+			if (File.Exists (path)) {
+				Debug.Log ("Load " + path);
+				byte[] data = File.ReadAllBytes (path);
+				Texture2D imgMap = new Texture2D (2, 2);
+				imgMap.LoadImage (data);
+				LargeMap map = new LargeMap (size);
+				for (int i = 0; i < map.size; i++) {
+					for (int j = 0; j < map.size; j++) {
+						map.heightMap [i] [j] = imgMap.GetPixel (i, j).r;
+					}
+				}
+				return map;
+			} 
+			else {
+				return null;
+			}
 		}
 
 		public void OnGUI () {
@@ -201,10 +250,18 @@ namespace SvenFrankson.Tools {
 
 		private LargeMap GetLargeMapFor(RandomSeed seed, Planet.Side side, bool withLatMap = false)
 		{
+
+			float t0 = Time.realtimeSinceStartup;
+
 			int x, y, z;
 			int size = PlanetUtility.DegreeToSize (PlanetUtility.KPosToDegree (this.kPosMax));
-			LargeMap map = new LargeMap (size);
-			float t0 = Time.realtimeSinceStartup;
+			string mapName = side + "-" + degreeAtKPosMax + "-" + seed.seed;
+			bool evaluate = false;
+			LargeMap map = Load (mapName, size);
+			if (map == null) {
+				map = new LargeMap (size);
+				evaluate = true;
+			}
 
 			if (side == Planet.Side.Top)
 			{
@@ -215,7 +272,9 @@ namespace SvenFrankson.Tools {
 					{
 						x = size - j;
 						z = i;
-						map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						if (evaluate) {
+							map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						}
 						if (withLatMap) {
 							map.latMap[i][j] = Mathf.Abs(Vector3.Angle(PlanetUtility.EvaluateVertex(size, x, y, z), Vector3.up) - 90f);
 						}
@@ -231,7 +290,9 @@ namespace SvenFrankson.Tools {
 					{
 						x = j;
 						z = i;
-						map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						if (evaluate) {
+							map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						}
 						if (withLatMap) {
 							map.latMap[i][j] = Mathf.Abs(Vector3.Angle(PlanetUtility.EvaluateVertex(size, x, y, z), Vector3.up) - 90f);
 						}
@@ -247,7 +308,9 @@ namespace SvenFrankson.Tools {
 					{
 						y = j;
 						z = i;
-						map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						if (evaluate) {
+							map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						}
 						if (withLatMap) {
 							map.latMap[i][j] = Mathf.Abs(Vector3.Angle(PlanetUtility.EvaluateVertex(size, x, y, z), Vector3.up) - 90f);
 						}
@@ -263,7 +326,9 @@ namespace SvenFrankson.Tools {
 					{
 						y = j;
 						z = size - i;
-						map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						if (evaluate) {
+							map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						}
 						if (withLatMap) {
 							map.latMap[i][j] = Mathf.Abs(Vector3.Angle(PlanetUtility.EvaluateVertex(size, x, y, z), Vector3.up) - 90f);
 						}
@@ -279,7 +344,9 @@ namespace SvenFrankson.Tools {
 					{
 						y = j;
 						x = size - i;
-						map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						if (evaluate) {
+							map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						}
 						if (withLatMap) {
 							map.latMap[i][j] = Mathf.Abs(Vector3.Angle(PlanetUtility.EvaluateVertex(size, x, y, z), Vector3.up) - 90f);
 						}
@@ -295,13 +362,16 @@ namespace SvenFrankson.Tools {
 					{
 						y = j;
 						x = i;
-						map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						if (evaluate) {
+							map.heightMap[i][j] = EvaluateTriCubic(x, y, z, seed);
+						}
 						if (withLatMap) {
 							map.latMap[i][j] = Mathf.Abs(Vector3.Angle(PlanetUtility.EvaluateVertex(size, x, y, z), Vector3.up) - 90f);
 						}
 					}
 				}
 			}
+			Save (mapName, map);
 			float t1 = Time.realtimeSinceStartup;
 			tBuildHeightMap += t1 - t0;
 

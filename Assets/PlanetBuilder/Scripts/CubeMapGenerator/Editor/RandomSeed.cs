@@ -4,7 +4,7 @@ using System.Collections;
 public class RandomSeed
 {
 
-    private int seed = 42;
+	public int seed = 42;
     private int RANDOMLENGTH = 1991;
 
     private float[] rands;
